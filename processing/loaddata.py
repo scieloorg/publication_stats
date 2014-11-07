@@ -69,7 +69,10 @@ def pages(first, last):
     except:
         pages = 0
 
-    return pages
+    if pages >= 0:
+        return pages
+    else:
+        return 0
 
 def fmt_article(document, collection='BR'):
     data = {}
@@ -226,14 +229,14 @@ if __name__ == '__main__':
     except:
         logging.debug('Index already available')
 
-    for document in documents('journal', fmt_journal):
-        logging.debug('loading document %s into index %s' % (document['id'], 'journal'))
-        ES.index(
-            index='production',
-            doc_type='journal',
-            id=document['id'],
-            body=document
-        )
+    # for document in documents('journal', fmt_journal):
+    #     logging.debug('loading document %s into index %s' % (document['id'], 'journal'))
+    #     ES.index(
+    #         index='production',
+    #         doc_type='journal',
+    #         id=document['id'],
+    #         body=document
+    #     )
 
     for document in documents('article', fmt_article):
         logging.debug('loading document %s into index %s' % (document['id'], 'article'))
