@@ -55,13 +55,10 @@ def fmt_journal(document):
     return data
 
 def country(country):
-
     if country in choices.ISO_3166:
         return country
-
     if country in ISO_3166_COUNTRY_AS_KEY:
         return ISO_3166_COUNTRY_AS_KEY[country]
-
     return 'undefined'
 
 def pages(first, last):
@@ -91,7 +88,7 @@ def fmt_article(document, collection='BR'):
     data['languages'] = [i for i in document.languages().keys()]
     data['aff_countries'] = ['undefined']
     if document.mixed_affiliations:
-        data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.affiliations]))
+        data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
     data['citations'] = len(document.citations or [])
 
     return data
