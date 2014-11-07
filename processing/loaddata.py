@@ -51,6 +51,7 @@ def fmt_journal(document):
     data['issn'] = document.scielo_issn
     data['collection'] = document.collection_acronym
     data['subject_areas'] = document.subject_areas
+    data['title'] = document.title
 
     return data
 
@@ -167,6 +168,10 @@ if __name__ == '__main__':
                     "subject_areas": {
                         "type": "string",
                         "index" : "not_analyzed"
+                    },
+                    "title": {
+                        "type": "string",
+                        "index" : "not_analyzed"
                     }
                 }
             },
@@ -207,7 +212,12 @@ if __name__ == '__main__':
                     "document_type": {
                         "type": "string",
                         "index" : "not_analyzed"
-                    }                }
+                    },
+                    "journal_title": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    }
+                }
             }
         }
     }
