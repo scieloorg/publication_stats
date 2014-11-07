@@ -1,0 +1,3 @@
+requests
+elasticsearch
+-e git+ssh://git@github.com/scieloorg/xylose.git#egg=xylose
