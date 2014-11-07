@@ -76,6 +76,7 @@ def fmt_article(document, collection='BR'):
     data['id'] = '_'.join([document.collection_acronym, document.publisher_id])
     data['pid'] = document.publisher_id
     data['issn'] = document.journal.scielo_issn
+    data['journal_title'] = document.journal.title
     data['issue'] = '_'.join([document.collection_acronym, document.publisher_id[0:18]])
     data['publication_date'] = document.publication_date
     data['publication_year'] = document.publication_date[0:4]
