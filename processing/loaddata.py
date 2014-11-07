@@ -87,7 +87,7 @@ def fmt_article(document, collection='BR'):
     pgs = pages(document.start_page, document.end_page)
     if pages:
         data['pages'] = pgs
-    data['languages'] = [i for i in document.languages().keys()]
+    data['languages'] = list(set([i for i in document.languages().keys()]+[document.original_language() or 'undefined']))
     data['aff_countries'] = ['undefined']
     if document.mixed_affiliations:
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
