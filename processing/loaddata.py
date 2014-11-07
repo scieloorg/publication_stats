@@ -65,7 +65,7 @@ def country(country):
 def pages(first, last):
 
     try:
-        pages = last-first
+        pages = int(last)-int(first)
     except:
         pages = 0
 
@@ -85,8 +85,7 @@ def fmt_article(document, collection='BR'):
     data['collection'] = document.collection_acronym
     data['document_type'] = document.document_type
     pgs = pages(document.start_page, document.end_page)
-    if pgs:
-        data['pages'] = pgs
+    data['pages'] = pgs
     data['languages'] = list(set([i for i in document.languages().keys()]+[document.original_language() or 'undefined']))
     data['aff_countries'] = ['undefined']
     if document.mixed_affiliations:
