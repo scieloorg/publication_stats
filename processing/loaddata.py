@@ -90,7 +90,7 @@ def fmt_article(document, collection='BR'):
         data['pages'] = pgs
     data['languages'] = [i for i in document.languages().keys()]
     data['aff_countries'] = ['undefined']
-    if document.affiliations:
+    if document.mixed_affiliations:
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.affiliations]))
     data['citations'] = len(document.citations or [])
 
@@ -215,14 +215,14 @@ if __name__ == '__main__':
     }
 
     try:
-        ES.indices.create(index='scielo', body=journal_settings_mappings)
+        ES.indices.create(index='production', body=journal_settings_mappings)
     except:
         logging.debug('Index already available')
 
     for document in documents('journal', fmt_journal):
         logging.debug('loading document %s into index %s' % (document['id'], 'journal'))
         ES.index(
-            index='scielo',
+            index='production',
             doc_type='journal',
             id=document['id'],
             body=document
@@ -231,7 +231,7 @@ if __name__ == '__main__':
     for document in documents('article', fmt_article):
         logging.debug('loading document %s into index %s' % (document['id'], 'article'))
         ES.index(
-            index='scielo',
+            index='production',
             doc_type='article',
             id=document['id'],
             body=document
