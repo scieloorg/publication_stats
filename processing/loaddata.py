@@ -1,5 +1,6 @@
 # coding: utf-8
 import logging
+from datetime import datetime, timedelta
 
 import requests
 
@@ -12,7 +13,11 @@ import choices
 ARTICLEMETA = "http://articlemeta.scielo.org/api/v1"
 ISO_3166_COUNTRY_AS_KEY = {value: key for key, value in choices.ISO_3166.items()}
 
+FROM = datetime.now() - timedelta(days=30)
+FROM.isoformat()[:10]
+
 ES = Elasticsearch()
+
 
 def _config_logging(logging_level='INFO', logging_file=None):
 
@@ -34,6 +39,7 @@ def _config_logging(logging_level='INFO', logging_file=None):
 
     logging.basicConfig(**logging_config)
 
+
 def do_request(url, params):
 
     response = requests.get(url, params=params).json()
@@ -41,8 +47,10 @@ def do_request(url, params):
     return response
 
 
+
 def fmt_document(document):
     return document
+
 
 def fmt_journal(document):
     data = {}
@@ -55,12 +63,14 @@ def fmt_journal(document):
 
     return data
 
+
 def country(country):
     if country in choices.ISO_3166:
         return country
     if country in ISO_3166_COUNTRY_AS_KEY:
         return ISO_3166_COUNTRY_AS_KEY[country]
     return 'undefined'
+
 
 def pages(first, last):
 
@@ -73,6 +83,7 @@ def pages(first, last):
         return pages
     else:
         return 0
+
 
 def fmt_article(document, collection='BR'):
     data = {}
@@ -97,14 +108,15 @@ def fmt_article(document, collection='BR'):
 
     return data
 
-def documents(endpoint, fmt=None):
+
+def documents(endpoint, fmt=None, frm=FROM):
 
     allowed_endpoints = ['journal', 'article']
 
     if not endpoint in allowed_endpoints:
         raise TypeError('Invalid endpoint, expected one of: %s' % str(allowed_endpoints))
 
-    params = {'offset': 0}
+    params = {'offset': 0, 'from': frm}
 
     if endpoint == 'article':
         xylose_model = Article
