@@ -1,6 +1,7 @@
 # coding: utf-8
 import logging
 from datetime import datetime, timedelta
+import argparse
 
 import requests
 
@@ -109,14 +110,14 @@ def fmt_article(document, collection='BR'):
     return data
 
 
-def documents(endpoint, fmt=None, frm=FROM):
+def documents(endpoint, fmt=None, from_date=FROM):
 
     allowed_endpoints = ['journal', 'article']
 
     if not endpoint in allowed_endpoints:
         raise TypeError('Invalid endpoint, expected one of: %s' % str(allowed_endpoints))
 
-    params = {'offset': 0, 'from': frm}
+    params = {'offset': 0, 'from': from_date}
 
     if endpoint == 'article':
         xylose_model = Article
@@ -159,9 +160,8 @@ def documents(endpoint, fmt=None, frm=FROM):
 
         params['offset'] += 1000
 
-if __name__ == '__main__':
 
-    _config_logging(logging_level='DEBUG')
+def main(from_date=FROM):
 
     journal_settings_mappings = {      
         "mappings": {
@@ -241,16 +241,16 @@ if __name__ == '__main__':
     except:
         logging.debug('Index already available')
 
-    # for document in documents('journal', fmt_journal):
-    #     logging.debug('loading document %s into index %s' % (document['id'], 'journal'))
-    #     ES.index(
-    #         index='production',
-    #         doc_type='journal',
-    #         id=document['id'],
-    #         body=document
-    #     )
+    for document in documents('journal', fmt_journal, from_date=from_date):
+        logging.debug('loading document %s into index %s' % (document['id'], 'journal'))
+        ES.index(
+            index='production',
+            doc_type='journal',
+            id=document['id'],
+            body=document
+        )
 
-    for document in documents('article', fmt_article):
+    for document in documents('article', fmt_article, from_date=from_date):
         logging.debug('loading document %s into index %s' % (document['id'], 'article'))
         ES.index(
             index='production',
@@ -258,3 +258,37 @@ if __name__ == '__main__':
             id=document['id'],
             body=document
         )
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(
+        description="Load SciELO Network data no analytics production"
+    )
+
+    parser.add_argument(
+        '--from_date',
+        '-f',
+        default=FROM,
+        help='ISO date like 2013-12-31'
+    )
+
+    parser.add_argument(
+        '--logging_file',
+        '-o',
+        default='/tmp/dumpdata.log',
+        help='Full path to the log file'
+    )
+
+    parser.add_argument(
+        '--logging_level',
+        '-l',
+        default='DEBUG',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        help='Logggin level'
+    )
+
+    args = parser.parse_args()
+
+    _config_logging(args.logging_level, args.logging_file)
+
+    main(from_date=args.from_date)
