@@ -271,17 +271,19 @@ def main(doc_type, from_date=FROM):
         logging.debug('Index already available')
 
     if doc_type == 'journal':
+        endpoint = 'journal'
         fmt = fmt_journal
     elif doc_type == 'article':
+        endpoint = 'article'
         fmt = fmt_article
     elif doc_type == 'citation':
-        doc_type = 'article'
+        endpoint = 'article'
         fmt = fmt_citation
     else:
         logging.error('Invalid doc_type')
         exit()
 
-    for document in documents(doc_type, fmt, from_date=from_date):
+    for document in documents(endpoint, fmt, from_date=from_date):
         logging.debug('loading document %s into index %s' % (document['id'], doc_type))
         ES.index(
             index='production',
