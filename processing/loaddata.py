@@ -62,7 +62,7 @@ def fmt_journal(document):
     data['subject_areas'] = document.subject_areas
     data['title'] = document.title
 
-    return data
+    yield data
 
 
 def country(country):
@@ -107,12 +107,23 @@ def fmt_article(document, collection='BR'):
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
     data['citations'] = len(document.citations or [])
 
-    return data
+    yield data
+
+def fmt_citation(document, collection='BR'):
+
+    for citation in document.citations or []:
+        data = {}
+        data['id'] = '_'.join([document.collection_acronym, document.publisher_id, str(citation.index_number)])
+        data['document_id'] = '_'.join([document.collection_acronym, document.publisher_id])
+        data['citation_type'] = citation.publication_type
+        data['collection'] = document.collection_acronym
+
+        yield data
 
 
 def documents(endpoint, fmt=None, from_date=FROM):
 
-    allowed_endpoints = ['journal', 'article']
+    allowed_endpoints = ['journal', 'article', 'citation']
 
     if not endpoint in allowed_endpoints:
         raise TypeError('Invalid endpoint, expected one of: %s' % str(allowed_endpoints))
@@ -156,12 +167,14 @@ def documents(endpoint, fmt=None, from_date=FROM):
             elif isinstance(document, list):
                 doc_ret = document[0]
 
-            yield fmt(xylose_model(doc_ret))
+
+            for item in fmt(xylose_model(doc_ret)):
+                yield item
 
         params['offset'] += 1000
 
 
-def main(from_date=FROM):
+def main(doc_type, from_date=FROM):
 
     journal_settings_mappings = {      
         "mappings": {
@@ -184,6 +197,22 @@ def main(from_date=FROM):
                         "index" : "not_analyzed"
                     },
                     "title": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    }
+                }
+            },
+            "citation": {
+                "properties": {
+                    "collection": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "id": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "citation_type": {
                         "type": "string",
                         "index" : "not_analyzed"
                     }
@@ -241,20 +270,22 @@ def main(from_date=FROM):
     except:
         logging.debug('Index already available')
 
-    for document in documents('journal', fmt_journal, from_date=from_date):
-        logging.debug('loading document %s into index %s' % (document['id'], 'journal'))
-        ES.index(
-            index='production',
-            doc_type='journal',
-            id=document['id'],
-            body=document
-        )
+    if doc_type == 'journal':
+        fmt = fmt_journal
+    elif doc_type == 'article':
+        fmt = fmt_article
+    elif doc_type == 'citation':
+        doc_type = 'article'
+        fmt = fmt_citation
+    else:
+        logging.error('Invalid doc_type')
+        exit()
 
-    for document in documents('article', fmt_article, from_date=from_date):
-        logging.debug('loading document %s into index %s' % (document['id'], 'article'))
+    for document in documents(doc_type, fmt, from_date=from_date):
+        logging.debug('loading document %s into index %s' % (document['id'], doc_type))
         ES.index(
             index='production',
-            doc_type='article',
+            doc_type=doc_type,
             id=document['id'],
             body=document
         )
@@ -280,6 +311,13 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        '--doc_type',
+        '-d',
+        choices=['article', 'journal', 'citation'],
+        help='Document type that will be updated'
+    )
+
+    parser.add_argument(
         '--logging_level',
         '-l',
         default='DEBUG',
@@ -291,4 +329,4 @@ if __name__ == '__main__':
 
     _config_logging(args.logging_level, args.logging_file)
 
-    main(from_date=args.from_date)
+    main(doc_type=args.doc_type, from_date=args.from_date)
