@@ -60,6 +60,8 @@ def fmt_journal(document):
     data['issn'] = document.scielo_issn
     data['collection'] = document.collection_acronym
     data['subject_areas'] = document.subject_areas
+    data['included_at_year'] = document.creation_date[0:4]
+    data['status'] = document.current_status
     data['title'] = document.title
 
     yield data
