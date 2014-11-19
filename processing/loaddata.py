@@ -118,7 +118,10 @@ def fmt_citation(document, collection='BR'):
         data['id'] = '_'.join([document.collection_acronym, document.publisher_id, str(citation.index_number)])
         data['document_id'] = '_'.join([document.collection_acronym, document.publisher_id])
         data['citation_type'] = citation.publication_type
-        data['publication_year'] = citation.date[0:4] or ''
+
+        if citation.date:
+            data['publication_year'] = citation.date[0:4]
+
         data['collection'] = document.collection_acronym
 
         yield data
