@@ -118,6 +118,7 @@ def fmt_citation(document, collection='BR'):
         data['id'] = '_'.join([document.collection_acronym, document.publisher_id, str(citation.index_number)])
         data['document_id'] = '_'.join([document.collection_acronym, document.publisher_id])
         data['citation_type'] = citation.publication_type
+        data['publication_year'] = citation.date[0:4]
         data['collection'] = document.collection_acronym
 
         yield data
@@ -201,6 +202,14 @@ def main(doc_type, from_date=FROM):
                     "title": {
                         "type": "string",
                         "index" : "not_analyzed"
+                    },
+                    "included_at_year": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "status": {
+                        "type": "string",
+                        "index" : "not_analyzed"
                     }
                 }
             },
@@ -215,6 +224,10 @@ def main(doc_type, from_date=FROM):
                         "index" : "not_analyzed"
                     },
                     "citation_type": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "publication_year": {
                         "type": "string",
                         "index" : "not_analyzed"
                     }
