@@ -118,10 +118,7 @@ def fmt_citation(document, collection='BR'):
         data['id'] = '_'.join([document.collection_acronym, document.publisher_id, str(citation.index_number)])
         data['pid'] = document.publisher_id
         data['citation_type'] = citation.publication_type
-
-        if citation.date:
-            data['publication_year'] = citation.date[0:4]
-
+        data['publication_year'] = citation.date[0:4]
         data['collection'] = document.collection_acronym
 
         yield data
@@ -161,8 +158,13 @@ def documents(endpoint, fmt=None, from_date=FROM):
 
             if endpoint == 'article':
                 dparams['code'] = identifier['code']
+                if dparams['code'] == None:
+                    continue
+
             elif endpoint == 'journal':
                 dparams['issn'] = identifier['code'][0]
+                if dparams['issn'] == None:
+                    continue
 
             document = do_request(
                 '{0}/{1}'.format(ARTICLEMETA, endpoint), dparams
