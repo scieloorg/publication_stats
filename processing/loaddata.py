@@ -56,8 +56,8 @@ def fmt_document(document):
 def fmt_journal(document):
     data = {}
 
-    data['id'] = document.scielo_issn
-    data['issn'] = '_'.join([document.collection_acronym, document.scielo_issn])
+    data['id'] = '_'.join([document.collection_acronym, document.scielo_issn])
+    data['issn'] = document.scielo_issn
     data['collection'] = document.collection_acronym
     data['subject_areas'] = document.subject_areas
     data['included_at_year'] = document.creation_date[0:4]
