@@ -1,6 +1,8 @@
 # coding: utf-8
 import logging
+import sys
 
+import elasticsearch
 from elasticsearch import ElasticsearchException
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
@@ -32,26 +34,42 @@ def stats(hosts=None):
 
     return Stats(hosts)
 
-class IndexError(Exception):
+class ServerError(Exception):
 
     def __init__(self, value):
-        self.value = value
-        self.message = value
-    
+        self.message = 'Server Error: %s' % str(value)
+
     def __str__(self):
-        return repr(self.value)
+        return repr(self.message)
 
 class Stats(Elasticsearch):
 
-    def publication_search(self, *args, **kwargs):
-
-        kwargs['index'] = 'publication'
+    def _query_dispatcher(self, *args, **kwargs):
 
         try:
-            query_result = self.search(*args, **kwargs)
-        except ElasticsearchException as e:
-            logging.error('ElasticSearch Error: %s' % e.message)
-            raise
+            data = self.search(*args, **kwargs)
+        except elasticsearch.SerializationError:
+            logging.error('ElasticSearch SerializationError')
+            raise ServerError()
+        except elasticsearch.TransportError as e:
+            logging.error('ElasticSearch TransportError: %s' % e.error)
+            raise ServerError()
+        except elasticsearch.ConnectionError as e:
+            logging.error('ElasticSearch ConnectionError: %s' % e.error)
+            raise ServerError()
+        except:
+            logging.error("Unexpected error: %s" % sys.exc_info()[0])
+            raise ServerError()
+
+        return data
+
+    def publication_search(self, doc_type, body):
+
+        query_result = self._query_dispatcher(
+            index='publication',
+            doc_type=doc_type,
+            body=body
+        )
 
         return query_result
 
@@ -113,8 +131,8 @@ class Stats(Elasticsearch):
                 }
             }
 
-        query_result = self.search(
-            index='production',
+        query_result = self._query_dispatcher(
+            index='publication',
             doc_type=doc_type,
             search_type='count',
             body=body

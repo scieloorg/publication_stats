@@ -19,3 +19,4 @@ The statistics are related to the distribution of the following aspects:
  * Available Languages
  * Affiliation Country
  * Publication Year
+ * Journals (ISSN, Title)

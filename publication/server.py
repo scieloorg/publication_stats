@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 
-from controller import stats
+from controller import stats, ServerError
 
 import thriftpy
 from thriftpy.rpc import make_server
@@ -46,130 +46,93 @@ class Dispatcher(object):
 
         self._stats = stats()
 
+    def _stats_dispatcher(self, *args, **kwargs):
+
+        try:
+            data = self._stats.publication_stats(*args, **kwargs)
+        except ValueError as e:
+            logging.error(e.message)
+            raise publication_stats_thrift.ValueError(message=e.message)
+        except ServerError as e:
+            raise publication_stats_thrift.ServerError(message=e.message)
+
+        return data
+
     def query(self, doc_type, body):
 
         try:
-            data = self._stats.query(doc_type, body)
+            data = self._stats.publication_search(doc_type, body)
         except ValueError as e:
-            logging.ERROR(e.message)
+            logging.error(e.message)
             raise publication_stats_thrift.ValueError(message=e.message)
+        except ServerError as e:
+            raise publication_stats_thrift.ServerError(message=e.message)
 
         try:
             data_str = json.dumps(data)
         except ValueError as e:
-            logging.ERROR('Invalid JSON data: %s' % data_str)
+            logging.error('Invalid JSON data: %s' % data_str)
             raise publication_stats_thrift.ValueError(message=e.message)
 
         return data_str
 
     def journal_subject_areas(self, filters=None):
 
-        try:
-            data = self._stats.stats('journal', 'subject_areas', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
-
-
-        return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
-
-    def journal_subject_areas_aggs(self, aggs, filters=None):
-
-        try:
-            data = self._stats.stats('journal', 'subject_areas', aggs)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self._stats_dispatcher('journal', 'subject_areas', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
     def journal_collections(self, filters=None):
 
-        try:
-            data = self._stats.stats('journal', 'collection', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self._stats_dispatcher('journal', 'collection', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
     def journal_statuses(self, filters=None):
 
-        try:
-            data = self._stats.stats('journal', 'status', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self_stats_dispatcher('journal', 'status', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
     def journal_inclusion_years(self, filters=None):
 
-        try:
-            data = self._stats.stats('journal', 'included_at_year', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self._stats_dispatcher('journal', 'included_at_year', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
     def document_subject_areas(self, filters=None):
 
-        try:
-            data = self._stats.stats('article', 'subject_areas', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self._stats_dispatcher('article', 'subject_areas', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
     def document_collections(self, filters=None):
 
-        try:
-            data = self._stats.stats('article', 'collection', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self._stats_dispatcher('article', 'collection', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
     def document_publication_years(self, filters=None):
 
-        try:
-            data = self._stats.stats('article', 'publication_year', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self._stats_dispatcher('article', 'publication_year', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
     def document_languages(self, filters=None):
 
-        try:
-            data = self._stats.stats('article', 'languages', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self._stats_dispatcher('article', 'languages', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
     def document_affiliation_countries(self, filters=None):
 
-        try:
-            data = self._stats.stats('article', 'aff_countries', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self._stats_dispatcher('article', 'aff_countries', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
     def document_types(self, filters=None):
 
-        try:
-            data = self._stats.stats('article', 'document_type', filters=filters)
-        except ValueError as e:
-            logging.ERROR(e.message)
-            raise publication_stats_thrift.ValueError(message=e.message)
+        data = self._stats_dispatcher('article', 'document_type', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
