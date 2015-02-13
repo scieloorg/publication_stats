@@ -6,13 +6,13 @@ the SciELO Network databases.
 
 The statistics are related to the distribution of the following aspects:
 
-*Journals*
+**Journals**
 
  * Collections
  * Subject Areas
  * Inclusion Year at SciELO Network
 
-*Documents
+**Documents**
 
  * Collections
  * Subject Areas
