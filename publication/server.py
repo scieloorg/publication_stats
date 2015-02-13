@@ -90,7 +90,7 @@ class Dispatcher(object):
 
     def journal_statuses(self, filters=None):
 
-        data = self_stats_dispatcher('journal', 'status', filters=filters)
+        data = self._stats_dispatcher('journal', 'status', filters=filters)
 
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
