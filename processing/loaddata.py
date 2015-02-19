@@ -124,9 +124,14 @@ def fmt_citation(document, collection='BR'):
         yield data
 
 
-def documents(endpoint, fmt=None, from_date=FROM):
+def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
 
     allowed_endpoints = ['journal', 'article', 'citation']
+
+    mode = 'history'
+
+    if identifiers:
+        mode = 'identifiers'
 
     if not endpoint in allowed_endpoints:
         raise TypeError('Invalid endpoint, expected one of: %s' % str(allowed_endpoints))
@@ -140,7 +145,7 @@ def documents(endpoint, fmt=None, from_date=FROM):
 
     while True:
         identifiers = do_request(
-            '{0}/{1}/identifiers'.format(ARTICLEMETA, endpoint),
+            '{0}/{1}/{2}'.format(ARTICLEMETA, endpoint, mode),
             params
         )
 
@@ -170,19 +175,24 @@ def documents(endpoint, fmt=None, from_date=FROM):
                 '{0}/{1}'.format(ARTICLEMETA, endpoint), dparams
             )
 
+
+            if 'event' in identifier and identifier['event'] == 'delete':
+                dparams['id'] = '_'.join([dparams['collection'], dparams['code']])
+                yield (identifier['event'], dparams)
+                continue
+
             if isinstance(document, dict):
                 doc_ret = document
             elif isinstance(document, list):
                 doc_ret = document[0]
 
-
             for item in fmt(xylose_model(doc_ret)):
-                yield item
+                yield ('add', item)
 
         params['offset'] += 1000
 
 
-def main(doc_type, from_date=FROM):
+def main(doc_type, from_date=FROM, identifiers=False):
 
     journal_settings_mappings = {      
         "mappings": {
@@ -290,7 +300,7 @@ def main(doc_type, from_date=FROM):
     }
 
     try:
-        ES.indices.create(index='production', body=journal_settings_mappings)
+        ES.indices.create(index='publication', body=journal_settings_mappings)
     except:
         logging.debug('Index already available')
 
@@ -307,14 +317,26 @@ def main(doc_type, from_date=FROM):
         logging.error('Invalid doc_type')
         exit()
 
-    for document in documents(endpoint, fmt, from_date=from_date):
-        logging.debug('loading document %s into index %s' % (document['id'], doc_type))
-        ES.index(
-            index='production',
-            doc_type=doc_type,
-            id=document['id'],
-            body=document
-        )
+    for event, document in documents(endpoint, fmt, from_date=from_date, identifiers=identifiers):
+        if event == 'delete':
+            logging.debug('removing document %s from index %s' % (document['id'], doc_type))
+            try:
+                ES.delete(
+                    index='publication',
+                    doc_type=doc_type,
+                    id=document['id']
+                )
+            except:
+                logging.debug('Index does not exists')
+
+        else: # event would be ['add', 'update']
+            logging.debug('loading document %s into index %s' % (document['id'], doc_type))
+            ES.index(
+                index='publication',
+                doc_type=doc_type,
+                id=document['id'],
+                body=document
+            )
 
 if __name__ == '__main__':
 
@@ -327,6 +349,13 @@ if __name__ == '__main__':
         '-f',
         default=FROM,
         help='ISO date like 2013-12-31'
+    )
+
+    parser.add_argument(
+        '--identifiers',
+        '-i',
+        action='store_true',
+        help='Define the identifiers endpoint to retrieve the document and journal codes. If not given the enpoint used will be the history. When using history the processing will also remove records from the index.'
     )
 
     parser.add_argument(
@@ -355,4 +384,4 @@ if __name__ == '__main__':
 
     _config_logging(args.logging_level, args.logging_file)
 
-    main(doc_type=args.doc_type, from_date=args.from_date)
+    main(doc_type=args.doc_type, from_date=args.from_date, identifiers=args.identifiers)
