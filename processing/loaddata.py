@@ -17,8 +17,6 @@ import choices
 config = utils.Configuration.from_file(os.environ.get('CONFIG_INI', os.path.dirname(__file__)+'/../config.ini'))
 settings = dict(config.items())
 
-import pdb; pdb.set_trace()
-
 ARTICLEMETA = "http://articlemeta.scielo.org/api/v1"
 ISO_3166_COUNTRY_AS_KEY = {value: key for key, value in choices.ISO_3166.items()}
 
