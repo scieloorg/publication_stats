@@ -2,6 +2,7 @@
 import logging
 from datetime import datetime, timedelta
 import argparse
+import os
 
 import requests
 
@@ -9,7 +10,14 @@ from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from xylose.scielodocument import Article, Journal
 
+from publication import utils
 import choices
+
+
+config = utils.Configuration.from_file(os.environ.get('CONFIG_INI', os.path.dirname(__file__)+'/../config.ini'))
+settings = dict(config.items())
+
+import pdb; pdb.set_trace()
 
 ARTICLEMETA = "http://articlemeta.scielo.org/api/v1"
 ISO_3166_COUNTRY_AS_KEY = {value: key for key, value in choices.ISO_3166.items()}
@@ -17,7 +25,7 @@ ISO_3166_COUNTRY_AS_KEY = {value: key for key, value in choices.ISO_3166.items()
 FROM = datetime.now() - timedelta(days=30)
 FROM.isoformat()[:10]
 
-ES = Elasticsearch()
+ES = Elasticsearch(settings['app:main']['elasticsearch'])
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
@@ -30,15 +38,22 @@ def _config_logging(logging_level='INFO', logging_file=None):
         'CRITICAL': logging.CRITICAL
     }
 
-    logging_config = {
-        'level': allowed_levels.get(logging_level, 'INFO'),
-        'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    }
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    logger = logging.getLogger('publication_stats')
+    logger.setLevel(allowed_levels.get(logging_level, 'INFO'))
 
     if logging_file:
-        logging_config['filename'] = logging_file
+        hl = logging.FileHandler(logging_file, mode='a')
+    else:
+        hl = logging.StreamHandler()
 
-    logging.basicConfig(**logging_config)
+    hl.setFormatter(formatter)
+    hl.setLevel(allowed_levels.get(logging_level, 'INFO'))
+
+    logger.addHandler(hl)
+
+    return logger
 
 
 def do_request(url, params):
@@ -149,9 +164,9 @@ def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
             params
         )
 
-        logging.debug('offset %s' % str(params['offset']))
+        logger.debug('offset %s' % str(params['offset']))
 
-        logging.debug('len identifiers %s' % str(len(identifiers['objects'])))
+        logger.debug('len identifiers %s' % str(len(identifiers['objects'])))
 
         if len(identifiers['objects']) == 0:
             raise StopIteration
@@ -302,7 +317,7 @@ def main(doc_type, from_date=FROM, identifiers=False):
     try:
         ES.indices.create(index='publication', body=journal_settings_mappings)
     except:
-        logging.debug('Index already available')
+        logger.debug('Index already available')
 
     if doc_type == 'journal':
         endpoint = 'journal'
@@ -314,12 +329,12 @@ def main(doc_type, from_date=FROM, identifiers=False):
         endpoint = 'article'
         fmt = fmt_citation
     else:
-        logging.error('Invalid doc_type')
+        logger.error('Invalid doc_type')
         exit()
 
     for event, document in documents(endpoint, fmt, from_date=from_date, identifiers=identifiers):
         if event == 'delete':
-            logging.debug('removing document %s from index %s' % (document['id'], doc_type))
+            logger.debug('removing document %s from index %s' % (document['id'], doc_type))
             try:
                 ES.delete(
                     index='publication',
@@ -327,10 +342,10 @@ def main(doc_type, from_date=FROM, identifiers=False):
                     id=document['id']
                 )
             except:
-                logging.debug('Index does not exists')
+                logger.debug('Index does not exists')
 
         else: # event would be ['add', 'update']
-            logging.debug('loading document %s into index %s' % (document['id'], doc_type))
+            logger.debug('loading document %s into index %s' % (document['id'], doc_type))
             ES.index(
                 index='publication',
                 doc_type=doc_type,
@@ -382,6 +397,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    _config_logging(args.logging_level, args.logging_file)
+    logger = _config_logging(args.logging_level, args.logging_file)
 
     main(doc_type=args.doc_type, from_date=args.from_date, identifiers=args.identifiers)
