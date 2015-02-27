@@ -6,7 +6,7 @@ import os
 import sys
 
 import requests
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, NotFoundError
 from elasticsearch.client import IndicesClient
 from xylose.scielodocument import Article, Journal
 
