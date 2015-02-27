@@ -3,9 +3,9 @@ import logging
 from datetime import datetime, timedelta
 import argparse
 import os
+import sys
 
 import requests
-
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from xylose.scielodocument import Article, Journal
@@ -334,13 +334,11 @@ def main(doc_type, from_date=FROM, identifiers=False):
         if event == 'delete':
             logger.debug('removing document %s from index %s' % (document['id'], doc_type))
             try:
-                ES.delete(
-                    index='publication',
-                    doc_type=doc_type,
-                    id=document['id']
-                )
+                ES.delete(index='publication', doc_type=doc_type, id=document['id'])
+            except NotFoundError:
+                logger.debug('Record already removed: %s' % document['id'])
             except:
-                logger.debug('Index does not exists')
+                logger.error('Unexpected error: %s' % sys.exc_info()[0])
 
         else: # event would be ['add', 'update']
             logger.debug('loading document %s into index %s' % (document['id'], doc_type))
