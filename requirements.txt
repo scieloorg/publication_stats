@@ -1,5 +1,6 @@
 requests
 elasticsearch
+gunicorn_thrift
 -e git+git://github.com/scieloorg/xylose.git#egg=xylose
 cython
 thriftpy
