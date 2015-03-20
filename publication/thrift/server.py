@@ -36,7 +36,7 @@ class Dispatcher(object):
 
         return data
 
-    def query(self, doc_type, body, parameters):
+    def search(self, doc_type, body, parameters):
 
         params = {i.key:i.value for i in parameters}
         params['doc_type'] = doc_type

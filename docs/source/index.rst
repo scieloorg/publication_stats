@@ -40,6 +40,7 @@ Methods
    dev/rpc_spec/document_languages
    dev/rpc_spec/document_affiliation_countries
    dev/rpc_spec/document_types
+   dev/rpc_spec/search
 
 Structs
 =======

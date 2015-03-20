@@ -10,6 +10,26 @@
         2: i32 count,
     }
 
+
+.. _kwargs:
+
+``kwargs``
+==========
+
+..block::
+
+    struct kwargs {
+        1: string key,
+        2: value value,
+    }
+
+Esta ``struct`` é utilizada pelo serviço :ref:`search`, para transportar 
+parametros de configuração de uma pesquisa no elasticsearch.
+
+
+https://elasticsearch-py.readthedocs.org/en/master/api.html#elasticsearch.Elasticsearch.search
+
+
 .. _filters:
 
 ``filters``
