@@ -36,10 +36,14 @@ class Dispatcher(object):
 
         return data
 
-    def query(self, doc_type, body):
+    def query(self, doc_type, body, parameters):
+
+        params = {i.key:i.value for i in parameters}
+        params['doc_type'] = doc_type
+        params['body'] = json.loads(body)
 
         try:
-            data = self._stats.publication_search(doc_type, body)
+            data = self._stats.publication_search(params)
         except ValueError as e:
             logging.error(e.message)
             raise publication_stats_thrift.ValueError(message=e.message)

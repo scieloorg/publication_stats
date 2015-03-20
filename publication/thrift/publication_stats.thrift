@@ -22,6 +22,11 @@ struct filters {
     2: string value
 }
 
+struct kwargs {
+    1: string key,
+    2: string value,
+}
+
 service PublicationStats {
     list<aggs> journal_subject_areas(1: optional map<string,string> filters) throws (1:ValueError value_err, 2:ServerError server_err),
     list<aggs> journal_collections(1: optional map<string,string> filters) throws (1:ValueError value_err, 2:ServerError server_err),
@@ -33,5 +38,5 @@ service PublicationStats {
     list<aggs> document_languages(1: optional map<string,string> filters) throws (1:ValueError value_err, 2:ServerError server_err),
     list<aggs> document_affiliation_countries(1: optional map<string,string> filters) throws (1:ValueError value_err, 2:ServerError server_err),
     list<aggs> document_types(1: optional map<string,string> filters) throws (1:ValueError value_err, 2:ServerError server_err),
-    string query(1: string doc_type, 2: string body) throws (1:ValueError value_err, 2:ServerError server_err),
+    string query(1:string doc_type, 2: string body, 3: optional list<kwargs> parameters) throws (1:ValueError value_err, 2:ServerError server_err),
 }

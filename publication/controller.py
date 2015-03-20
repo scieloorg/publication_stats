@@ -30,7 +30,7 @@ ALLOWED_DOC_TYPES_N_FACETS = {
 def stats(hosts=None):
 
     if not hosts:
-        hosts = ['homolog.esa.scielo.org', 'homolog.esb.scielo.org']
+        hosts = ['esa.scielo.org', 'esb.scielo.org']
 
     return Stats(hosts)
 
@@ -63,13 +63,10 @@ class Stats(Elasticsearch):
 
         return data
 
-    def publication_search(self, doc_type, body):
+    def publication_search(self, parameters):
 
-        query_result = self._query_dispatcher(
-            index='publication',
-            doc_type=doc_type,
-            body=body
-        )
+        parameters['index'] = 'publication'
+        query_result = self._query_dispatcher(**parameters)
 
         return query_result
 
