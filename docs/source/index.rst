@@ -41,6 +41,7 @@ Methods
    dev/rpc_spec/document_affiliation_countries
    dev/rpc_spec/document_types
    dev/rpc_spec/search
+   dev/client_sample
 
 Structs
 =======
