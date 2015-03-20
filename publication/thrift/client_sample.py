@@ -17,7 +17,7 @@ client = make_client(
 )
 
 
-query = {
+body = {
   "query": {
     "match": {
       "collection": "scl"
@@ -37,4 +37,4 @@ parameters = [
 ]
 
 
-print json.loads(client.query('article', json.dumps(query), parameters))
+print json.loads(client.search('article', json.dumps(body), parameters))
