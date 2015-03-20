@@ -41,6 +41,14 @@ Methods
    dev/rpc_spec/document_affiliation_countries
    dev/rpc_spec/document_types
    dev/rpc_spec/search
+   
+
+Exemplo de cliente
+==================
+
+.. toctree::
+   :maxdepth: 1
+
    dev/client_sample
 
 Structs

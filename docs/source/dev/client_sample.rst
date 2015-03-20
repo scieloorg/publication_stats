@@ -5,6 +5,10 @@ dependências:
     
     thriftpy
 
+Especificação:
+
+    https://raw.githubusercontent.com/scieloorg/publication_stats/master/publication/thrift/publication_stats.thrift
+
 python::
 
     # coding: utf-8
