@@ -16,7 +16,6 @@ client = make_client(
     11620
 )
 
-
 body = {
   "query": {
     "match": {
