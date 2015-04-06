@@ -46,5 +46,6 @@ setup(
     entry_points="""\
     [console_scripts]
     publicationstats_thriftserver = publication.thrift.server:main
+    publicationstats_loaddata = processing.loaddata:main
     """,
 )

@@ -12,7 +12,7 @@ from thriftpy.rpc import make_client
 
 client = make_client(
     publication_stats_thrift.PublicationStats,
-    '127.0.0.1',
+    'nefertiti.scielo.org',
     11620
 )
 

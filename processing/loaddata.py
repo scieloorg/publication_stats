@@ -13,8 +13,9 @@ from xylose.scielodocument import Article, Journal
 from publication import utils
 import choices
 
+logger = logging.getLogger(__name__)
 
-config = utils.Configuration.from_file(os.environ.get('CONFIG_INI', os.path.dirname(__file__)+'/../config.ini'))
+config = utils.Configuration.from_env()
 settings = dict(config.items())
 
 ARTICLEMETA = "http://articlemeta.scielo.org/api/v1"
@@ -38,7 +39,6 @@ def _config_logging(logging_level='INFO', logging_file=None):
 
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    logger = logging.getLogger('publication_stats')
     logger.setLevel(allowed_levels.get(logging_level, 'INFO'))
 
     if logging_file:
@@ -205,7 +205,7 @@ def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
         params['offset'] += 1000
 
 
-def main(doc_type, from_date=FROM, identifiers=False):
+def run(doc_type, from_date=FROM, identifiers=False):
 
     journal_settings_mappings = {      
         "mappings": {
@@ -349,7 +349,7 @@ def main(doc_type, from_date=FROM, identifiers=False):
                 body=document
             )
 
-if __name__ == '__main__':
+def main():
 
     parser = argparse.ArgumentParser(
         description="Load SciELO Network data no analytics production"
@@ -372,7 +372,6 @@ if __name__ == '__main__':
     parser.add_argument(
         '--logging_file',
         '-o',
-        default='/tmp/dumpdata.log',
         help='Full path to the log file'
     )
 
@@ -393,6 +392,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    logger = _config_logging(args.logging_level, args.logging_file)
+    _config_logging(args.logging_level, args.logging_file)
 
-    main(doc_type=args.doc_type, from_date=args.from_date, identifiers=args.identifiers)
+    run(doc_type=args.doc_type, from_date=args.from_date, identifiers=args.identifiers)
