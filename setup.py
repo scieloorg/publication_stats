@@ -9,16 +9,18 @@ with open(os.path.join(here, 'README.rst')) as f:
 with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
-requires = [
-    'requests',
-    'elasticsearch',
-    'thriftpy'
+install_requires = [
+    'requests>=2.6.0',
+    'elasticsearch>=1.3.0',
+    'cython>=0.22',
+    'thriftpy>=0.2.0',
+    'xylose'
     ]
 
 test_requires = []
 
 setup(
-    name="publication",
+    name="Publication Stats Thrift",
     version='0.1',
     description="A SciELO RPC server to retrieve publication statistics from the SciELO Network ",
     author="SciELO",
@@ -36,11 +38,13 @@ setup(
         "Topic :: System",
         "Topic :: Services",
     ],
-    setup_requires=["nose>=1.0", "coverage"],
+    dependency_links=[
+        "git+https://github.com/scieloorg/xylose@v0.5b#egg=xylose"
+    ],
     tests_require=test_requires,
-    test_suite="nose.collector",
+    install_requires=install_requires,
     entry_points="""\
-    [paste.app_factory]
-    main = publication:main
+    [console_scripts]
+    publicationstats_thriftserver = publication.thrift.server:main
     """,
 )

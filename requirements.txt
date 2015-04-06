@@ -1,6 +1,6 @@
-requests
-elasticsearch
-gunicorn_thrift
--e git+git://github.com/scieloorg/xylose.git#egg=xylose
-cython
-thriftpy
+requests==2.6.0
+elasticsearch==1.3.0
+cython==0.22
+thriftpy==0.2.0
+-e git+https://github.com/scieloorg/xylose@v0.5b#egg=xylose
+-e git+https://github.com/scieloorg/publication_stats@0.1.1#egg=publication_stats

@@ -8,7 +8,7 @@ import sys
 from publication.controller import stats, ServerError
 
 import thriftpy
-from thriftpy.thrift import TProcessor
+from thriftpy.rpc import make_server
 
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,9 @@ publication_stats_thrift = thriftpy.load(
     os.path.dirname(__file__)+'/publication_stats.thrift',
     module_name='publication_stats_thrift'
 )
+
+ADDRESS = '127.0.0.1'
+PORT = '11620'
 
 class Dispatcher(object):
 
@@ -119,4 +122,29 @@ class Dispatcher(object):
         return [publication_stats_thrift.aggs(key=key, count=count) for key, count in data.items()]
 
 
-app = TProcessor(publication_stats_thrift.PublicationStats, Dispatcher())
+def main():
+
+    parser = argparse.ArgumentParser(
+        description="Publication Stats Thrift Server."
+    )
+
+    parser.add_argument(
+        '--address',
+        '-a',
+        default=ADDRESS,
+        help='Binding Address'
+    )
+
+
+    parser.add_argument(
+        '--port',
+        '-p',
+        default=PORT,
+        help='Binding Port'
+    )
+    
+    args = parser.parse_args()
+
+    server = make_server(publication_stats_thrift.PublicationStats,
+        Dispatcher(), args.address, args.port)
+    server.serve()
