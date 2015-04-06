@@ -21,7 +21,7 @@ test_requires = []
 
 setup(
     name="Publication Stats Thrift",
-    version='0.1.1',
+    version='0.1.2',
     description="A SciELO RPC server to retrieve publication statistics from the SciELO Network ",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
