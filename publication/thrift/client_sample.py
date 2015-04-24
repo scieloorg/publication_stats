@@ -10,31 +10,34 @@ publication_stats_thrift = thriftpy.load(
 
 from thriftpy.rpc import make_client
 
-client = make_client(
-    publication_stats_thrift.PublicationStats,
-    '127.0.0.1',
-    11620
-)
+
+if __name__ == '__main__':
+
+  client = make_client(
+      publication_stats_thrift.PublicationStats,
+      '127.0.0.1',
+      11620
+  )
 
 
-body = {
-  "query": {
-    "match": {
-      "collection": "scl"
-    }
-  },
-  "aggs": {
-    "languages": {
-      "terms": {
-        "field": "languages"
+  body = {
+    "query": {
+      "match": {
+        "collection": "scl"
+      }
+    },
+    "aggs": {
+      "languages": {
+        "terms": {
+          "field": "languages"
+        }
       }
     }
   }
-}
 
-parameters = [
-    publication_stats_thrift.kwargs('search_type', 'count')
-]
+  parameters = [
+      publication_stats_thrift.kwargs('search_type', 'count')
+  ]
 
 
-print json.loads(client.search('article', json.dumps(body), parameters))
+  print json.loads(client.search('article', json.dumps(body), parameters))

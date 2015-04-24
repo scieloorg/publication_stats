@@ -27,12 +27,43 @@ ALLOWED_DOC_TYPES_N_FACETS = {
     ]
 }
 
-def stats(hosts=None):
+def construct_aggs(aggs, size=0):
+    """
+    Construct the ElasticSearch aggretions query according to a list of
+    parameters that must be aggregated.
+    """
 
-    if not hosts:
-        hosts = ['esa.scielo.org', 'esb.scielo.org']
+    data = {}
+    point = None
+    def join(field, point=None):
+        default = {
+            field: {
+                "terms": {
+                    "field": field,
+                    "size": 0
+                }
+            }
+        }
 
-    return Stats(hosts)
+        if point:
+            point.setdefault('aggs', default)
+            return point['aggs'][field]
+        else:
+            data.setdefault('aggs', default)
+            return data['aggs'][field]
+
+    for item in aggs:
+        point = join(item, point=point)
+
+    return data
+
+
+def stats(*args, **kwargs):
+
+    if not 'hosts' in kwargs:
+        kwargs['hosts'] = ['esa.scielo.org', 'esb.scielo.org']
+
+    return Stats(*args, **kwargs)
 
 class ServerError(Exception):
 
@@ -70,7 +101,15 @@ class Stats(Elasticsearch):
 
         return query_result
 
-    def publication_stats(self, doc_type, facet, filters=None, aggs=None):
+    def publication_stats(self, doc_type, aggs, filters=None):
+
+        if not aggs:
+            raise ValueError(
+                u'Aggregation not allowed, %s, expected %s' % (
+                    str(aggs),
+                    str(ALLOWED_DOC_TYPES_N_FACETS[doc_type])
+                )
+            )
 
         if not doc_type in ALLOWED_DOC_TYPES_N_FACETS.keys():
             raise ValueError(
@@ -79,36 +118,23 @@ class Stats(Elasticsearch):
                     str(ALLOWED_DOC_TYPES_N_FACETS.keys())
                 )
             )
-
-        if not facet in ALLOWED_DOC_TYPES_N_FACETS[doc_type]:
-            raise ValueError(
-                u'Facet not allowed, %s, expected %s' % (
-                    facet,
-                    str(ALLOWED_DOC_TYPES_N_FACETS[doc_type])
+        
+        for agg in aggs:
+            if not agg in ALLOWED_DOC_TYPES_N_FACETS[doc_type]:
+                raise ValueError(
+                    u'Aggregation not allowed, %s, expected %s' % (
+                        aggs,
+                        str(ALLOWED_DOC_TYPES_N_FACETS[doc_type])
+                    )
                 )
-            )
-
-        if aggs and not aggs in ALLOWED_DOC_TYPES_N_FACETS[doc_type]:
-            raise ValueError(
-                u'Aggregation not allowed, %s, expected %s' % (
-                    aggs,
-                    str(ALLOWED_DOC_TYPES_N_FACETS[doc_type])
-                )
-            )
 
         body = {
             "query": {
                 "match_all": {}
-            },
-            "aggs": {
-                facet: {
-                    "terms": {
-                        "field": facet,
-                        "size": 0
-                    }
-                }
             }
         }
+
+        body.update(construct_aggs(aggs))
 
         if filters:
             must_terms = []
@@ -135,6 +161,6 @@ class Stats(Elasticsearch):
             body=body
         )
 
-        response = {item['key']:item['doc_count'] for item in query_result['aggregations'][facet]['buckets']}
+        response = query_result['aggregations']
 
         return response
