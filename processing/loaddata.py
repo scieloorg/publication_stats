@@ -121,6 +121,7 @@ def fmt_article(document, collection='BR'):
     if document.mixed_affiliations:
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
     data['citations'] = len(document.citations or [])
+    data['authors'] = len(document.authors or [])
 
     yield data
 
