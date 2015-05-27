@@ -1,8 +1,12 @@
-Servidor RPC para estatísticas de publicação
-============================================
+Serviço de extração de estatísticas de publicação
+=================================================
 
-Este servidor RPC fornece um conjunto de endpoints para recuperação de
-indicadores de publicação das coleções, periódicos e documentos da Rede SciELO.
+Este serviço fornece duas modalidades de extração de indicadores de publicação
+das coleções da Rede SciELO.
+
+* servidor RPC com um conjunto de endpoints para recuperação de indicadores de publicação das coleções, periódicos e documentos da Rede SciELO.
+
+* API pública com um conjunto de endpoints para recuperação de indicadores de publicação das coleções, periódicos e documentos da Rede SciELO.
 
 Os indicaores estatísticos estão relacionados aos seguuintes aspectos:
 
@@ -24,8 +28,25 @@ Os indicaores estatísticos estão relacionados aos seguuintes aspectos:
  * Periódico (ISSN, título)
 
 
-Methods
-=======
+API Endpoints
+=============
+
+.. toctree::
+   :maxdepth: 2
+
+   dev/api_spec/introduction
+
+Exemplo de cliente
+------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   dev/api_client_sample
+
+
+RPC Endpoints
+=============
 
 .. toctree::
    :maxdepth: 2
@@ -44,15 +65,15 @@ Methods
    
 
 Exemplo de cliente
-==================
+------------------
 
 .. toctree::
    :maxdepth: 1
 
-   dev/client_sample
+   dev/rpc_client_sample
 
 Structs
-=======
+-------
 
 .. toctree::
    :maxdepth: 2

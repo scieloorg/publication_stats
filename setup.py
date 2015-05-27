@@ -16,7 +16,7 @@ install_requires = [
     'thriftpy>=0.2.0',
     'thriftpywrap',
     'xylose',
-    'pyramid',
+    'pyramid>=1.5.7',
     'pyramid_chameleon',
     'pyramid_mako',
     'pyramid_debugtoolbar',
@@ -26,9 +26,9 @@ install_requires = [
 test_requires = []
 
 setup(
-    name="Publication Stats Thrift",
+    name="publication",
     version='0.2.0',
-    description="A SciELO RPC server to retrieve publication statistics from the SciELO Network ",
+    description="A SciELO RPC server and API to retrieve publication statistics from the SciELO Network ",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
     license="BSD 2-clause",

@@ -4,18 +4,20 @@ import pyramid.httpexceptions as exc
 
 @view_config(route_name='index', request_method='GET')
 def index(request):
-    return Response('Publication Stats by SciELO API')
+    return Response('Publication Stats API by SciELO')
 
 @view_config(route_name='journals', request_method='GET', renderer='jsonp')
 def journals_collection(request):
     collection = request.GET.get('collection', None)
     issn = request.GET.get('issn', None)
     subject_area = request.GET.get('subject_area', None)
-    journal = request.GET.get('journal', None)
     aggs = request.GET.get('aggs', None)
 
     if not aggs:
         raise exc.HTTPBadRequest("aggs parameter is required")
+
+    if len(aggs.split(',')) > 3:
+        raise exc.HTTPBadRequest("max aggregations allowed is 3, you are must doing something wrong if you are trying to use more than 2 aggregations")
 
     filters = {}
     if collection:
@@ -24,8 +26,6 @@ def journals_collection(request):
         filters['issn'] = issn
     if subject_area:
         filters['subject_areas'] = subject_area
-    if journal:
-        filters['journal'] = journal
 
     try:
         data = request.index.publication_stats(doc_type='journal', filters=filters, aggs=aggs.split(','))
@@ -48,6 +48,9 @@ def documents_collection(request):
 
     if not aggs:
         raise exc.HTTPBadRequest("aggs parameter is required")
+
+    if len(aggs.split(',')) > 3:
+        raise exc.HTTPBadRequest("max aggregations allowed is 3, you are must doing something wrong if you are trying to use more than 2 aggregations")
 
     filters = {}
     if collection:

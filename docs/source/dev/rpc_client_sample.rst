@@ -1,5 +1,5 @@
-Exemplo de Cliente
-==================
+Exemplo de Cliente RPC
+======================
 
 dependências:
     
