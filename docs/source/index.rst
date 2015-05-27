@@ -28,8 +28,8 @@ Os indicaores estatísticos estão relacionados aos seguuintes aspectos:
  * Periódico (ISSN, título)
 
 
-API Endpoints
-=============
+Endpoints da API
+================
 
 .. toctree::
    :maxdepth: 2
