@@ -100,6 +100,24 @@ def pages(first, last):
     else:
         return 0
 
+def acceptancedelta(received, accepted):
+
+    try:
+        rec = datetime.strptime(received,'%Y-%m-%d')
+    except:
+        return None
+
+    try:
+        acc = datetime.strptime(accepted,'%Y-%m-%d')
+    except:
+        return None
+
+    delta = acc-rec
+
+    days = delta.days
+
+    if days >= 0:
+        return days
 
 def fmt_article(document, collection='BR'):
     data = {}
@@ -122,6 +140,14 @@ def fmt_article(document, collection='BR'):
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
     data['citations'] = len(document.citations or [])
     data['authors'] = len(document.authors or [])
+
+    if document.doi:
+        data['doi'] = document.doi
+        data['doi_prefix'] = document.doi.split('/')[0]
+
+    delta = acceptancedelta(document.receive_date, document.acceptance_date)
+    if delta:
+        data['acceptance_delta'] = delta
 
     yield data
 
