@@ -140,6 +140,8 @@ def fmt_article(document, collection='BR'):
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
     data['citations'] = len(document.citations or [])
     data['authors'] = len(document.authors or [])
+    if document.permissions:
+        data['license'] = document.permissions.get('id' or 'undefined')
 
     if document.doi:
         data['doi'] = document.doi
@@ -211,10 +213,10 @@ def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
                 if dparams['issn'] == None:
                     continue
 
-            document = do_request(
-                '{0}/{1}'.format(ARTICLEMETA, endpoint), dparams
-            )
+            document = do_request('{0}/{1}'.format(ARTICLEMETA, endpoint), dparams)
 
+            if not document:
+                continue
 
             if 'event' in identifier and identifier['event'] == 'delete':
                 dparams['id'] = '_'.join([dparams['collection'], dparams['code']])
@@ -225,6 +227,7 @@ def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
                 doc_ret = document
             elif isinstance(document, list):
                 doc_ret = document[0]
+
 
             for item in fmt(xylose_model(doc_ret)):
                 yield ('add', item)
@@ -331,6 +334,14 @@ def run(doc_type, from_date=FROM, identifiers=False):
                         "index" : "not_analyzed"
                     },
                     "journal_title": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "license": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "doi_prefix": {
                         "type": "string",
                         "index" : "not_analyzed"
                     }

@@ -14,4 +14,4 @@ class ViewTests(unittest.TestCase):
         from publication.views import index
         request = testing.DummyRequest()
         info = index(request)
-        self.assertEqual(info.body, 'Publication Stats by SciELO API')
+        self.assertEqual(info.body, 'Publication Stats API by SciELO')
