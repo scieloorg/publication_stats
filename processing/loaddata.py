@@ -341,6 +341,18 @@ def run(doc_type, from_date=FROM, identifiers=False):
                         "type": "string",
                         "index" : "not_analyzed"
                     },
+                    "publication_year": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "publication_date": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "doi": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
                     "doi_prefix": {
                         "type": "string",
                         "index" : "not_analyzed"
