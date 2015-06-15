@@ -4,5 +4,5 @@ cython==0.22
 thriftpy==0.3.0
 pyramid==1.5.7
 -e git+https://github.com/scieloorg/xylose@0.11b#egg=xylose
--e git+https://github.com/scieloorg/publication_stats@0.2.2#egg=publication_stats
+-e git+https://github.com/scieloorg/publication_stats@0.2.3#egg=publication_stats
 -e git+https://github.com/scieloorg/thriftpy-wrap@0.1.1#egg=thriftpywrap
