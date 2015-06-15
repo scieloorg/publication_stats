@@ -76,6 +76,8 @@ def fmt_journal(document):
     data['included_at_year'] = document.creation_date[0:4]
     data['status'] = document.current_status
     data['title'] = document.title
+    if document.permissions and 'id' in document.permissions:
+        data['license'] = document.permissions['id']
 
     yield data
 
@@ -266,6 +268,10 @@ def run(doc_type, from_date=FROM, identifiers=False):
                         "index" : "not_analyzed"
                     },
                     "status": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "license": {
                         "type": "string",
                         "index" : "not_analyzed"
                     }
