@@ -63,6 +63,8 @@ def stats(*args, **kwargs):
     if not 'hosts' in kwargs:
         kwargs['hosts'] = ['esa.scielo.org', 'esb.scielo.org']
 
+    kwargs['timeout'] = kwargs.get('timeout', 60)
+
     return Stats(*args, **kwargs)
 
 class ServerError(Exception):
