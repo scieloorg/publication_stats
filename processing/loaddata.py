@@ -412,7 +412,8 @@ def run(doc_type, from_date=FROM, identifiers=False):
                 index='publication',
                 doc_type=doc_type,
                 id=document['id'],
-                body=document
+                body=document,
+                timeout=120
             )
 
 def main():
