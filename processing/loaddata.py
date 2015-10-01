@@ -24,7 +24,7 @@ ISO_3166_COUNTRY_AS_KEY = {value: key for key, value in choices.ISO_3166.items()
 FROM = datetime.now() - timedelta(days=30)
 FROM.isoformat()[:10]
 
-ES = Elasticsearch(settings['app:main']['elasticsearch'])
+ES = Elasticsearch(settings['app:main']['elasticsearch'], timeout=360)
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
@@ -412,8 +412,7 @@ def run(doc_type, from_date=FROM, identifiers=False):
                 index='publication',
                 doc_type=doc_type,
                 id=document['id'],
-                body=document,
-                timeout=120
+                body=document
             )
 
 def main():
