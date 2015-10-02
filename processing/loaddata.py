@@ -56,10 +56,13 @@ def _config_logging(logging_level='INFO', logging_file=None):
 
 def do_request(url, params):
 
-    response = requests.get(url, params=params).json()
+    try:
+        response = requests.get(url, params=params).json()
+    except:
+        logger.error('Fail to load url: %s, %s' % url, str(params))
+        return None
 
     return response
-
 
 
 def fmt_document(document):
@@ -231,7 +234,6 @@ def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
                 doc_ret = document
             elif isinstance(document, list):
                 doc_ret = document[0]
-
 
             for item in fmt(xylose_model(doc_ret)):
                 yield ('add', item)
