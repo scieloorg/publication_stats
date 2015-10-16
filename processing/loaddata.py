@@ -79,8 +79,8 @@ def fmt_journal(document):
     data['included_at_year'] = document.creation_date[0:4]
     data['status'] = document.current_status
     data['title'] = document.title
-    if document.permissions and 'id' in document.permissions:
-        data['license'] = document.permissions['id']
+    permission = document.permissions or {'id': 'undefined'}
+    data['license'] = permission.get('id' or 'undefined')
 
     yield data
 
