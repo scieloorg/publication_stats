@@ -136,7 +136,8 @@ def fmt_article(document, collection='BR'):
     data['processing_date'] = document.processing_date
     data['publication_date'] = document.publication_date
     data['publication_year'] = document.publication_date[0:4]
-    data['subject_areas'] = [i for i in document.journal.subject_areas]
+    subject_areas = document.journal.subject_areas or ['undefined']
+    data['subject_areas'] = [i for i in subject_areas]
     data['collection'] = document.collection_acronym
     data['document_type'] = document.document_type
     pgs = pages(document.start_page, document.end_page)
@@ -147,9 +148,8 @@ def fmt_article(document, collection='BR'):
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
     data['citations'] = len(document.citations or [])
     data['authors'] = len(document.authors or [])
-    if document.permissions:
-        data['license'] = document.permissions.get('id' or 'undefined')
-
+    permission = document.permissions or {'id': 'undefined'}
+    data['license'] = permission.get('id' or 'undefined')
     if document.doi:
         data['doi'] = document.doi
         data['doi_prefix'] = document.doi.split('/')[0]
