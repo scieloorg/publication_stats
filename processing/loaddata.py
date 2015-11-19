@@ -353,15 +353,15 @@ def run(doc_type, from_date=FROM, identifiers=False):
                         "type": "string",
                         "index" : "not_analyzed"
                     },
-                    "processing_year": {
-                        "type": "string",
-                        "index" : "not_analyzed"
-                    },
                     "creation_date": {
                         "type": "string",
                         "index" : "not_analyzed"
                     },
                     "creation_year": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "processing_year": {
                         "type": "string",
                         "index" : "not_analyzed"
                     },
