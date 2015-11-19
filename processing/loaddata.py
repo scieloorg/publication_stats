@@ -132,6 +132,8 @@ def fmt_article(document, collection='BR'):
     data['issn'] = document.journal.scielo_issn
     data['journal_title'] = document.journal.title
     data['issue'] = '_'.join([document.collection_acronym, document.publisher_id[0:18]])
+    data['creation_year'] = document.creation_date[0:4]
+    data['creation_date'] = document.creation_date
     data['processing_year'] = document.processing_date[0:4]
     data['processing_date'] = document.processing_date
     data['publication_date'] = document.publication_date
@@ -352,6 +354,14 @@ def run(doc_type, from_date=FROM, identifiers=False):
                         "index" : "not_analyzed"
                     },
                     "processing_year": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "creation_date": {
+                        "type": "string",
+                        "index" : "not_analyzed"
+                    },
+                    "creation_year": {
                         "type": "string",
                         "index" : "not_analyzed"
                     },
