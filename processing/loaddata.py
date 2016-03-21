@@ -124,6 +124,7 @@ def acceptancedelta(received, accepted):
     if days >= 0:
         return days
 
+
 def fmt_article(document, collection='BR'):
     data = {}
 
@@ -132,6 +133,7 @@ def fmt_article(document, collection='BR'):
     data['issn'] = document.journal.scielo_issn
     data['journal_title'] = document.journal.title
     data['issue'] = '_'.join([document.collection_acronym, document.publisher_id[0:18]])
+    data['issue_type'] = document.issue.type
     data['creation_year'] = document.creation_date[0:4]
     data['creation_date'] = document.creation_date
     data['processing_year'] = document.processing_date[0:4]
@@ -161,6 +163,7 @@ def fmt_article(document, collection='BR'):
         data['acceptance_delta'] = delta
 
     yield data
+
 
 def fmt_citation(document, collection='BR'):
 
@@ -251,35 +254,35 @@ def run(doc_type, from_date=FROM, identifiers=False):
                 "properties": {
                     "collection": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "id": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "issn": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "subject_areas": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "title": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "included_at_year": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "status": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "license": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     }
                 }
             },
@@ -287,23 +290,23 @@ def run(doc_type, from_date=FROM, identifiers=False):
                 "properties": {
                     "collection": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "id": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "pid": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "citation_type": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "publication_year": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     }
                 }
             },
@@ -311,79 +314,83 @@ def run(doc_type, from_date=FROM, identifiers=False):
                 "properties": {
                     "id": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "pid": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "issn": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "issue": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "subject_areas": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "collection": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "languages": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "aff_countries": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "document_type": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "journal_title": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "license": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "creation_date": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "creation_year": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "processing_year": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "processing_date": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "publication_year": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "publication_date": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "doi": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
                     },
                     "doi_prefix": {
                         "type": "string",
-                        "index" : "not_analyzed"
+                        "index": "not_analyzed"
+                    },
+                    "issue_type": {
+                        "type": "string",
+                        "index": "not_analyzed"
                     }
                 }
             }
