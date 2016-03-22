@@ -27,6 +27,7 @@ ALLOWED_DOC_TYPES_N_FACETS = {
     ]
 }
 
+
 def construct_aggs(aggs, size=0):
     """
     Construct the ElasticSearch aggretions query according to a list of
@@ -67,6 +68,7 @@ def stats(*args, **kwargs):
 
     return Stats(*args, **kwargs)
 
+
 class ServerError(Exception):
 
     def __init__(self, value):
@@ -74,6 +76,7 @@ class ServerError(Exception):
 
     def __str__(self):
         return repr(self.message)
+
 
 class Stats(Elasticsearch):
 
@@ -120,7 +123,7 @@ class Stats(Elasticsearch):
                     str(ALLOWED_DOC_TYPES_N_FACETS.keys())
                 )
             )
-        
+
         for agg in aggs:
             if not agg in ALLOWED_DOC_TYPES_N_FACETS[doc_type]:
                 raise ValueError(

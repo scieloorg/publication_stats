@@ -105,6 +105,7 @@ def pages(first, last):
     else:
         return 0
 
+
 def acceptancedelta(received, accepted):
 
     try:
@@ -133,7 +134,7 @@ def fmt_article(document, collection='BR'):
     data['issn'] = document.journal.scielo_issn
     data['journal_title'] = document.journal.title
     data['issue'] = '_'.join([document.collection_acronym, document.publisher_id[0:18]])
-    data['issue_type'] = document.issue.type
+    data['issue_type'] = document.issue.type if document.issue else 'udefined'
     data['creation_year'] = document.creation_date[0:4]
     data['creation_date'] = document.creation_date
     data['processing_year'] = document.processing_date[0:4]
@@ -190,7 +191,7 @@ def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
     if not endpoint in allowed_endpoints:
         raise TypeError('Invalid endpoint, expected one of: %s' % str(allowed_endpoints))
 
-    params = {'offset': 0, 'from': from_date}
+    params = {'offset': 39200, 'from': from_date}
 
     if endpoint == 'article':
         xylose_model = Article
@@ -248,7 +249,7 @@ def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
 
 def run(doc_type, from_date=FROM, identifiers=False):
 
-    journal_settings_mappings = {      
+    journal_settings_mappings = {
         "mappings": {
             "journal": {
                 "properties": {
@@ -425,7 +426,7 @@ def run(doc_type, from_date=FROM, identifiers=False):
             except:
                 logger.error('Unexpected error: %s' % sys.exc_info()[0])
 
-        else: # event would be ['add', 'update']
+        else:  # event would be ['add', 'update']
             logger.debug('loading document %s into index %s' % (document['id'], doc_type))
             ES.index(
                 index='publication',
@@ -433,6 +434,7 @@ def run(doc_type, from_date=FROM, identifiers=False):
                 id=document['id'],
                 body=document
             )
+
 
 def main():
 
