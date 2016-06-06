@@ -191,7 +191,7 @@ def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
     if not endpoint in allowed_endpoints:
         raise TypeError('Invalid endpoint, expected one of: %s' % str(allowed_endpoints))
 
-    params = {'offset': 39200, 'from': from_date}
+    params = {'offset': 0, 'from': from_date}
 
     if endpoint == 'article':
         xylose_model = Article
