@@ -8,9 +8,9 @@ import sys
 import requests
 from elasticsearch import Elasticsearch, NotFoundError
 from elasticsearch.client import IndicesClient
-from xylose.scielodocument import Article, Journal
 
 from publication import utils
+from thrift import clients
 import choices
 
 logger = logging.getLogger(__name__)
@@ -18,13 +18,27 @@ logger = logging.getLogger(__name__)
 config = utils.Configuration.from_env()
 settings = dict(config.items())
 
-ARTICLEMETA = "http://articlemeta.scielo.org/api/v1"
 ISO_3166_COUNTRY_AS_KEY = {value: key for key, value in choices.ISO_3166.items()}
 
 FROM = datetime.now() - timedelta(days=30)
-FROM.isoformat()[:10]
+FROM = FROM.isoformat()[:10]
 
 ES = Elasticsearch(settings['app:main']['elasticsearch'], timeout=360)
+
+
+def articlemeta(address=None):
+    """
+    address: 127.0.0.1:11720
+    """
+    address = address or settings['app:main'].get('articlemeta', '127.0.0.1:11720')
+
+    host = address.split(':')[0]
+    try:
+        port = int(address.split(':')[1])
+    except:
+        port = 11720
+
+    return clients.ArticleMeta(host, port)
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
@@ -54,21 +68,6 @@ def _config_logging(logging_level='INFO', logging_file=None):
     return logger
 
 
-def do_request(url, params):
-
-    try:
-        response = requests.get(url, params=params).json()
-    except:
-        logger.error('Fail to load url: %s, %s' % url, str(params))
-        return None
-
-    return response
-
-
-def fmt_document(document):
-    return document
-
-
 def fmt_journal(document):
     data = {}
 
@@ -82,7 +81,7 @@ def fmt_journal(document):
     permission = document.permissions or {'id': 'undefined'}
     data['license'] = permission.get('id' or 'undefined')
 
-    yield data
+    return data
 
 
 def country(country):
@@ -109,12 +108,12 @@ def pages(first, last):
 def acceptancedelta(received, accepted):
 
     try:
-        rec = datetime.strptime(received,'%Y-%m-%d')
+        rec = datetime.strptime(received, '%Y-%m-%d')
     except:
         return None
 
     try:
-        acc = datetime.strptime(accepted,'%Y-%m-%d')
+        acc = datetime.strptime(accepted, '%Y-%m-%d')
     except:
         return None
 
@@ -126,7 +125,7 @@ def acceptancedelta(received, accepted):
         return days
 
 
-def fmt_article(document, collection='BR'):
+def fmt_document(document):
     data = {}
 
     data['id'] = '_'.join([document.collection_acronym, document.publisher_id])
@@ -163,88 +162,48 @@ def fmt_article(document, collection='BR'):
     if delta:
         data['acceptance_delta'] = delta
 
-    yield data
-
-
-def fmt_citation(document, collection='BR'):
-
-    for citation in document.citations or []:
-        data = {}
-        data['id'] = '_'.join([document.collection_acronym, document.publisher_id, str(citation.index_number)])
-        data['pid'] = document.publisher_id
-        data['citation_type'] = citation.publication_type
-        data['publication_year'] = citation.date[0:4]
-        data['collection'] = document.collection_acronym
-
-        yield data
+    return data
 
 
 def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
 
-    allowed_endpoints = ['journal', 'article', 'citation']
-
-    mode = 'history'
-
-    if identifiers:
-        mode = 'identifiers'
+    allowed_endpoints = ['journal', 'article']
 
     if not endpoint in allowed_endpoints:
         raise TypeError('Invalid endpoint, expected one of: %s' % str(allowed_endpoints))
 
-    params = {'offset': 0, 'from': from_date}
-
     if endpoint == 'article':
-        xylose_model = Article
+        if identifiers:
+            itens = articlemeta().documents(from_date=from_date)
+        else:
+            itens = articlemeta().documents_history(from_date=from_date)
     elif endpoint == 'journal':
-        xylose_model = Journal
+        if identifiers:
+            itens = articlemeta().journals()
+        else:
+            itens = articlemeta().journals_history(from_date=from_date)
 
-    while True:
-        identifiers = do_request(
-            '{0}/{1}/{2}'.format(ARTICLEMETA, endpoint, mode),
-            params
-        )
+    for item in itens:
 
-        logger.debug('offset %s' % str(params['offset']))
-
-        logger.debug('len identifiers %s' % str(len(identifiers['objects'])))
-
-        if len(identifiers['objects']) == 0:
-            raise StopIteration
-
-        for identifier in identifiers['objects']:
-            dparams = {
-                'collection': identifier['collection']
-            }
-
-            if endpoint == 'article':
-                dparams['code'] = identifier['code']
-                if dparams['code'] == None:
+        if not identifiers:  # mode history changes
+            history = item[0]
+            if history.event == 'delete':
+                delete_params = {'collection': history.collection}
+                if endpoint == 'article':
+                    delete_params['code'] = history.code or ''
+                elif endpoint == 'journal':
+                    delete_params['issn'] = history.code[0] or ''
+                code = delete_params.get('code', delete_params.get('issn', ''))
+                if not code:
                     continue
+                delete_params['id'] = '_'.join([history.collection, code])
+                import pdb; pdb.set_trace()
+                yield ('delete', delete_params)
+            doc_ret = item[1]
+        else:
+            doc_ret = item
 
-            elif endpoint == 'journal':
-                dparams['issn'] = identifier['code'][0]
-                if dparams['issn'] == None:
-                    continue
-
-            document = do_request('{0}/{1}'.format(ARTICLEMETA, endpoint), dparams)
-
-            if not document:
-                continue
-
-            if 'event' in identifier and identifier['event'] == 'delete':
-                dparams['id'] = '_'.join([dparams['collection'], dparams['code']])
-                yield (identifier['event'], dparams)
-                continue
-
-            if isinstance(document, dict):
-                doc_ret = document
-            elif isinstance(document, list):
-                doc_ret = document[0]
-
-            for item in fmt(xylose_model(doc_ret)):
-                yield ('add', item)
-
-        params['offset'] += 1000
+        yield ('add', fmt(doc_ret))
 
 
 def run(doc_type, from_date=FROM, identifiers=False):
@@ -408,10 +367,7 @@ def run(doc_type, from_date=FROM, identifiers=False):
         fmt = fmt_journal
     elif doc_type == 'article':
         endpoint = 'article'
-        fmt = fmt_article
-    elif doc_type == 'citation':
-        endpoint = 'article'
-        fmt = fmt_citation
+        fmt = fmt_document
     else:
         logger.error('Invalid doc_type')
         exit()
@@ -465,7 +421,7 @@ def main():
     parser.add_argument(
         '--doc_type',
         '-d',
-        choices=['article', 'journal', 'citation'],
+        choices=['article', 'journal'],
         help='Document type that will be updated'
     )
 

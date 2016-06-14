@@ -19,6 +19,7 @@ pyramid.includes =
 # debugtoolbar.hosts = 127.0.0.1 ::1
 
 elasticsearch = 127.0.0.1
+articlemeta = 127.0.0.1:11720
 
 ###
 # wsgi server configuration
