@@ -1,8 +1,11 @@
 #coding: utf-8
 import os
 import weakref
+import re
 
 from ConfigParser import SafeConfigParser
+
+REGEX_ISSN = re.compile(r"^[0-9]{4}-[0-9]{3}[0-9xX]$")
 
 
 class SingletonMixin(object):
@@ -62,3 +65,14 @@ class Configuration(SingletonMixin):
         """
         return [(section, dict(self.conf.items(section, raw=True))) for \
             section in [section for section in self.conf.sections()]]
+
+
+def ckeck_given_issns(issns):
+    valid_issns = []
+
+    for issn in issns:
+        if not REGEX_ISSN.match(issn):
+            continue
+        valid_issns.append(issn)
+
+    return valid_issns

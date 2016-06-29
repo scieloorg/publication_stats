@@ -165,48 +165,49 @@ def fmt_document(document):
     return data
 
 
-def documents(endpoint, fmt=None, from_date=FROM, identifiers=False):
+def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, identifiers=False):
 
     allowed_endpoints = ['journal', 'article']
 
     if not endpoint in allowed_endpoints:
         raise TypeError('Invalid endpoint, expected one of: %s' % str(allowed_endpoints))
 
-    if endpoint == 'article':
-        if identifiers:
-            itens = articlemeta().documents(from_date=from_date)
-        else:
-            itens = articlemeta().documents_history(from_date=from_date)
-    elif endpoint == 'journal':
-        if identifiers:
-            itens = articlemeta().journals()
-        else:
-            itens = articlemeta().journals_history(from_date=from_date)
+    for issn in issns:
+        if endpoint == 'article':
+            if identifiers:
+                itens = articlemeta().documents(collection=collection, issn=issn, from_date=from_date)
+            else:
+                itens = articlemeta().documents_history(from_date=from_date)
+        elif endpoint == 'journal':
+            if identifiers:
+                itens = articlemeta().journals()
+            else:
+                itens = articlemeta().journals_history(from_date=from_date)
 
-    for item in itens:
+        for item in itens:
 
-        if not identifiers:  # mode history changes
-            history = item[0]
-            if history.event == 'delete':
-                delete_params = {'collection': history.collection}
-                if endpoint == 'article':
-                    delete_params['code'] = history.code or ''
-                elif endpoint == 'journal':
-                    delete_params['issn'] = history.code[0] or ''
-                code = delete_params.get('code', delete_params.get('issn', ''))
-                if not code:
-                    continue
-                delete_params['id'] = '_'.join([history.collection, code])
-                import pdb; pdb.set_trace()
-                yield ('delete', delete_params)
-            doc_ret = item[1]
-        else:
-            doc_ret = item
+            if not identifiers:  # mode history changes
+                history = item[0]
+                if history.event == 'delete':
+                    delete_params = {'collection': history.collection}
+                    if endpoint == 'article':
+                        delete_params['code'] = history.code or ''
+                    elif endpoint == 'journal':
+                        delete_params['issn'] = history.code[0] or ''
+                    code = delete_params.get('code', delete_params.get('issn', ''))
+                    if not code:
+                        continue
+                    delete_params['id'] = '_'.join([history.collection, code])
+                    import pdb; pdb.set_trace()
+                    yield ('delete', delete_params)
+                doc_ret = item[1]
+            else:
+                doc_ret = item
 
-        yield ('add', fmt(doc_ret))
+            yield ('add', fmt(doc_ret))
 
 
-def run(doc_type, from_date=FROM, identifiers=False):
+def run(doc_type, collection=None, issns=None, from_date=FROM, identifiers=False):
 
     journal_settings_mappings = {
         "mappings": {
@@ -372,7 +373,7 @@ def run(doc_type, from_date=FROM, identifiers=False):
         logger.error('Invalid doc_type')
         exit()
 
-    for event, document in documents(endpoint, fmt, from_date=from_date, identifiers=identifiers):
+    for event, document in documents(endpoint, collection=collection, issns=issns, fmt=fmt, from_date=from_date, identifiers=identifiers):
         if event == 'delete':
             logger.debug('removing document %s from index %s' % (document['id'], doc_type))
             try:
@@ -396,6 +397,18 @@ def main():
 
     parser = argparse.ArgumentParser(
         description="Load SciELO Network data no analytics production"
+    )
+
+    parser.add_argument(
+        'issns',
+        nargs='*',
+        help='ISSN\'s separated by spaces'
+    )
+
+    parser.add_argument(
+        '--collection',
+        '-c',
+        help='Collection Acronym'
     )
 
     parser.add_argument(
@@ -437,4 +450,8 @@ def main():
 
     _config_logging(args.logging_level, args.logging_file)
 
-    run(doc_type=args.doc_type, from_date=args.from_date, identifiers=args.identifiers)
+    issns = None
+    if len(args.issns) > 0:
+        issns = utils.ckeck_given_issns(args.issns)
+
+    run(collection=args.collection, issns=issns or [None], doc_type=args.doc_type, from_date=args.from_date, identifiers=args.identifiers)
