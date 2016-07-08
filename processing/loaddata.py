@@ -18,11 +18,8 @@ logger = logging.getLogger(__name__)
 config = utils.Configuration.from_env()
 settings = dict(config.items())
 
-ISO_3166_COUNTRY_AS_KEY = {value: key for key, value in choices.ISO_3166.items()}
-
 FROM = datetime.now() - timedelta(days=30)
 FROM = FROM.isoformat()[:10]
-
 ES = Elasticsearch(settings['app:main']['elasticsearch'], timeout=360)
 
 
@@ -85,10 +82,29 @@ def fmt_journal(document):
 
 
 def country(country):
-    if country in choices.ISO_3166:
-        return country
-    if country in ISO_3166_COUNTRY_AS_KEY:
-        return ISO_3166_COUNTRY_AS_KEY[country]
+
+    code = country.upper()
+
+    if code in choices.ISO_3166_COUNTRY_CODE:
+        return code
+
+    if code in choices.ISO_3166_COUNTRY_NAME_AS_KEY:
+        return choices.ISO_3166_COUNTRY_NAME_AS_KEY[code]
+
+    return 'undefined'
+
+
+def state(state, country):
+
+    code = '-'.join([country, state])
+    code = code.upper()
+
+    if code in choices.ISO_3166_DIVISION_CODE:
+        return code
+
+    if state in choices.ISO_3166_DIVISION_NAME_AS_KEY:
+        return choices.ISO_3166_DIVISION_NAME_AS_KEY[state]
+
     return 'undefined'
 
 
@@ -148,8 +164,21 @@ def fmt_document(document):
     data['pages'] = pgs
     data['languages'] = list(set(document.languages()+[document.original_language() or 'undefined']))
     data['aff_countries'] = ['undefined']
+    data['aff_states_name'] = ['undefined']
     if document.mixed_affiliations:
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
+        data['aff_states_code'] = list(set([state(aff.get('state', 'undefined'), aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
+        data['aff_names'] = list(set([aff['institution'] for aff in document.mixed_affiliations if aff.get('institution', None)]))
+        data['aff_names_analyzed'] = data['aff_names']
+        data['aff_names_cleaned'] = list(set([utils.cleanup_string(i) for i in data['aff_names']]))
+        data['aff_states_name'] = list(set([choices.ISO_3166_DIVISION_CODE.get(i, 'undefied') for i in data['aff_states_code']]))
+    keywords = []
+    kws = document.keywords() or {}
+    if kws:
+        for item in kws.values():
+            keywords += item
+        data['keywords'] = keywords
+        data['keywords_analyzed'] = keywords
     data['citations'] = len(document.citations or [])
     data['authors'] = len(document.authors or [])
     permission = document.permissions or {'id': 'undefined'}
@@ -198,7 +227,6 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, i
                     if not code:
                         continue
                     delete_params['id'] = '_'.join([history.collection, code])
-                    import pdb; pdb.set_trace()
                     yield ('delete', delete_params)
                 doc_ret = item[1]
             else:
@@ -207,7 +235,7 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, i
             yield ('add', fmt(doc_ret))
 
 
-def run(doc_type, collection=None, issns=None, from_date=FROM, identifiers=False):
+def run(doc_type, index='publication', collection=None, issns=None, from_date=FROM, identifiers=False):
 
     journal_settings_mappings = {
         "mappings": {
@@ -305,6 +333,32 @@ def run(doc_type, collection=None, issns=None, from_date=FROM, identifiers=False
                         "type": "string",
                         "index": "not_analyzed"
                     },
+                    "aff_names": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "aff_names_cleaned": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "aff_names_analyzed": {
+                        "type": "string"
+                    },
+                    "aff_states_code": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "aff_states_name": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "keywords": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "keywords_analyzed": {
+                        "type": "string"
+                    },
                     "document_type": {
                         "type": "string",
                         "index": "not_analyzed"
@@ -359,7 +413,7 @@ def run(doc_type, collection=None, issns=None, from_date=FROM, identifiers=False
     }
 
     try:
-        ES.indices.create(index='publication', body=journal_settings_mappings)
+        ES.indices.create(index=index, body=journal_settings_mappings)
     except:
         logger.debug('Index already available')
 
@@ -377,7 +431,7 @@ def run(doc_type, collection=None, issns=None, from_date=FROM, identifiers=False
         if event == 'delete':
             logger.debug('removing document %s from index %s' % (document['id'], doc_type))
             try:
-                ES.delete(index='publication', doc_type=doc_type, id=document['id'])
+                ES.delete(index=index, doc_type=doc_type, id=document['id'])
             except NotFoundError:
                 logger.debug('Record already removed: %s' % document['id'])
             except:
@@ -386,7 +440,7 @@ def run(doc_type, collection=None, issns=None, from_date=FROM, identifiers=False
         else:  # event would be ['add', 'update']
             logger.debug('loading document %s into index %s' % (document['id'], doc_type))
             ES.index(
-                index='publication',
+                index=index,
                 doc_type=doc_type,
                 id=document['id'],
                 body=document
@@ -416,6 +470,13 @@ def main():
         '-f',
         default=FROM,
         help='ISO date like 2013-12-31'
+    )
+
+    parser.add_argument(
+        '--index',
+        '-x',
+        default='publication',
+        help='Define the index to populate.'
     )
 
     parser.add_argument(
@@ -454,4 +515,4 @@ def main():
     if len(args.issns) > 0:
         issns = utils.ckeck_given_issns(args.issns)
 
-    run(collection=args.collection, issns=issns or [None], doc_type=args.doc_type, from_date=args.from_date, identifiers=args.identifiers)
+    run(args.doc_type, index=args.index, collection=args.collection, issns=issns or [None], from_date=args.from_date, identifiers=args.identifiers)

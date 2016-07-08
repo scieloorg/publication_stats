@@ -2,6 +2,7 @@ import unittest
 
 from publication import controller
 
+
 class TestController(unittest.TestCase):
 
     def test_construct_aggs(self):

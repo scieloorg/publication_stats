@@ -2,10 +2,27 @@
 import os
 import weakref
 import re
+import unicodedata
 
 from ConfigParser import SafeConfigParser
 
 REGEX_ISSN = re.compile(r"^[0-9]{4}-[0-9]{3}[0-9xX]$")
+TAG_RE = re.compile(r'<[^>]+>')
+
+def remove_tags(text):
+    return TAG_RE.sub('', text)
+
+
+def cleanup_string(text):
+
+    try:
+        nfd_form = unicodedata.normalize('NFD', text.strip().lower())
+    except TypeError:
+        nfd_form = unicodedata.normalize('NFD', unicode(text.strip().lower()))
+
+    cleaned_str = u''.join(x for x in nfd_form if unicodedata.category(x)[0] == 'L' or x == ' ')
+
+    return remove_tags(cleaned_str).lower()
 
 
 class SingletonMixin(object):
