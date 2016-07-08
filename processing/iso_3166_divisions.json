@@ -1,0 +1,31 @@
+{
+    "BR": {
+        "BA": "Bahia",
+        "DF": "Distrito Federal",
+        "PR": "Paran\u00e1",
+        "RR": "Roraima",
+        "RS": "Rio Grande do Sul",
+        "PB": "Para\u00edba",
+        "TO": "Tocantins",
+        "PA": "Par\u00e1",
+        "PE": "Pernambuco",
+        "RN": "Rio Grande do Norte",
+        "RO": "Rond\u00f4nia",
+        "RJ": "Rio de Janeiro",
+        "AC": "Acre",
+        "AM": "Amazonas",
+        "AL": "Alagoas",
+        "CE": "Cear\u00e1",
+        "AP": "Amap\u00e1",
+        "GO": "Goi\u00e1s",
+        "ES": "Esp\u00edrito Santo",
+        "MG": "Minas Gerais",
+        "PI": "Piau\u00ed",
+        "MA": "Maranh\u00e3o",
+        "SP": "S\u00e3o Paulo",
+        "MT": "Mato Grosso",
+        "MS": "Mato Grosso do Sul",
+        "SC": "Santa Catarina",
+        "SE": "Sergipe"
+    }
+}
