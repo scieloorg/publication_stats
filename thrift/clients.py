@@ -57,6 +57,9 @@ class ArticleMeta(object):
             msg = 'Error retrieving document: %s_%s' % (collection, code)
             raise ServerError(msg)
 
+        if not journal:
+            return None
+
         if fmt == 'xylose':
             jjournal = json.loads(journal)
             xjournal = Journal(jjournal)
@@ -104,7 +107,7 @@ class ArticleMeta(object):
                 if identifier.event == 'delete':
                     yield (identifier, None)
 
-                if journal.data:
+                if journal and journal.data:
                     yield (identifier, journal)
 
             offset += 1000
