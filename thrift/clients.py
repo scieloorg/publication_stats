@@ -141,6 +141,7 @@ class ArticleMeta(object):
     def documents(self, collection=None, issn=None, from_date=None,
         until_date=None, fmt='xylose'):
         offset = 0
+
         while True:
             identifiers = self.client.get_article_identifiers(
                 collection=collection, issn=issn, from_date=from_date,
@@ -165,6 +166,7 @@ class ArticleMeta(object):
     def documents_history(self, collection=None, event=None, code=None, from_date=None,
         until_date=None, fmt='xylose'):
         offset = 0
+
         while True:
             identifiers = self.client.article_history_changes(
                 collection=collection, event=event, code=code, from_date=from_date,

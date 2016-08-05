@@ -162,7 +162,7 @@ def fmt_document(document):
     data['document_type'] = document.document_type
     pgs = pages(document.start_page, document.end_page)
     data['pages'] = pgs
-    data['languages'] = list(set(document.languages()+[document.original_language() or 'undefined']))
+    data['languages'] = [i.lower() for i in list(set(document.languages()+[document.original_language() or 'undefined']))]
     data['aff_countries'] = ['undefined']
     data['aff_states_name'] = ['undefined']
     if document.mixed_affiliations:
@@ -206,12 +206,12 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, i
             if identifiers:
                 itens = articlemeta().documents(collection=collection, issn=issn, from_date=from_date)
             else:
-                itens = articlemeta().documents_history(from_date=from_date)
+                itens = articlemeta().documents_history(collection=collection, from_date=from_date)
         elif endpoint == 'journal':
             if identifiers:
                 itens = articlemeta().journals()
             else:
-                itens = articlemeta().journals_history(from_date=from_date)
+                itens = articlemeta().journals_history(collection=collection, from_date=from_date)
 
         for item in itens:
 
