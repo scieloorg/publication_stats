@@ -27,7 +27,8 @@ def articlemeta(address=None):
     """
     address: 127.0.0.1:11720
     """
-    address = address or settings['app:main'].get('articlemeta', '127.0.0.1:11720')
+    address = address or settings['app:main'].get(
+        'articlemeta', '127.0.0.1:11720')
 
     host = address.split(':')[0]
     try:
@@ -48,7 +49,8 @@ def _config_logging(logging_level='INFO', logging_file=None):
         'CRITICAL': logging.CRITICAL
     }
 
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     logger.setLevel(allowed_levels.get(logging_level, 'INFO'))
 
@@ -94,18 +96,15 @@ def country(country):
     return 'undefined'
 
 
-def state(state, country):
+def state(state, country_code):
 
-    code = '-'.join([country, state])
+    code = '-'.join([country_code, state])
     code = code.upper()
 
     if code in choices.ISO_3166_DIVISION_CODE:
         return code
 
-    if state in choices.ISO_3166_DIVISION_NAME_AS_KEY:
-        return choices.ISO_3166_DIVISION_NAME_AS_KEY[state]
-
-    return 'undefined'
+    return choices.ISO_3166_DIVISION_NAME_AS_KEY.get(state.upper(), 'undefined')
 
 
 def pages(first, last):
@@ -167,7 +166,7 @@ def fmt_document(document):
     data['aff_states_name'] = ['undefined']
     if document.mixed_affiliations:
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
-        data['aff_states_code'] = list(set([state(aff.get('state', 'undefined'), aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
+        data['aff_states_code'] = list(set([state(aff.get('state', 'undefined'), country(aff.get('country', 'undefined'))) for aff in document.mixed_affiliations]))
         data['aff_names'] = list(set([aff['institution'] for aff in document.mixed_affiliations if aff.get('institution', None)]))
         data['aff_names_analyzed'] = data['aff_names']
         data['aff_names_cleaned'] = list(set([utils.cleanup_string(i) for i in data['aff_names']]))

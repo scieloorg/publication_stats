@@ -24,5 +24,5 @@ ISO_3166_COUNTRY_CODE = {}
 with codecs.open(iso_3166_country_code) as countries:
     ISO_3166_COUNTRY_CODE = json.loads(countries.read())
 
-ISO_3166_COUNTRY_NAME_AS_KEY = {value: key for key, value in ISO_3166_COUNTRY_CODE.items()}
-ISO_3166_DIVISION_NAME_AS_KEY = {value: key for key, value in ISO_3166_DIVISION_CODE.items()}
+ISO_3166_COUNTRY_NAME_AS_KEY = {value.upper(): key for key, value in ISO_3166_COUNTRY_CODE.items()}
+ISO_3166_DIVISION_NAME_AS_KEY = {value.upper(): key for key, value in ISO_3166_DIVISION_CODE.items()}
