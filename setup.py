@@ -27,7 +27,7 @@ test_requires = []
 
 setup(
     name="publication",
-    version='0.4.4',
+    version='0.5.4',
     description="A SciELO RPC server and API to retrieve publication statistics from the SciELO Network ",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
@@ -47,7 +47,7 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     ],
     dependency_links=[
-        "git+https://github.com/scieloorg/xylose@0.33#egg=xylose",
+        "git+https://github.com/scieloorg/xylose@1.15.5#egg=xylose",
         "git+https://github.com/scieloorg/thriftpy-wrap@0.1.1#egg=thriftpywrap"
     ],
     include_package_data=True,

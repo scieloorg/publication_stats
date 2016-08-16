@@ -1,13 +1,14 @@
-#coding: utf-8
+# coding: utf-8
 import os
 import weakref
 import re
 import unicodedata
 
-from ConfigParser import SafeConfigParser
+from configparser import ConfigParser
 
 REGEX_ISSN = re.compile(r"^[0-9]{4}-[0-9]{3}[0-9xX]$")
 TAG_RE = re.compile(r'<[^>]+>')
+
 
 def remove_tags(text):
     return TAG_RE.sub('', text)
@@ -35,7 +36,7 @@ class SingletonMixin(object):
     """
     _instances = weakref.WeakValueDictionary()
 
-    def __new__(cls, *args, **kwargs):
+    def __call__(cls, *args, **kwargs):
         key = (cls, args, tuple(kwargs.items()))
 
         if key in cls._instances:
@@ -51,7 +52,7 @@ class Configuration(SingletonMixin):
     """
     Acts as a proxy to the ConfigParser module
     """
-    def __init__(self, fp, parser_dep=SafeConfigParser):
+    def __init__(self, fp, parser_dep=ConfigParser):
         self.conf = parser_dep()
         self.conf.readfp(fp)
 
@@ -71,7 +72,7 @@ class Configuration(SingletonMixin):
 
         ``filepath`` is a text string.
         """
-        fp = open(filepath, 'rb')
+        fp = open(filepath, 'r')
         return cls(fp)
 
     def __getattr__(self, attr):

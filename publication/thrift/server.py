@@ -11,6 +11,8 @@ import thriftpy
 import thriftpywrap
 from thriftpy.rpc import make_server
 
+from publication import utils
+
 logger = logging.getLogger(__name__)
 
 publication_stats_thrift = thriftpy.load(
@@ -21,7 +23,15 @@ class Dispatcher(object):
 
     def __init__(self):
 
-        self._stats = stats()
+        config = utils.Configuration.from_env()
+        settings = dict(config.items())
+
+        es_params = {
+            'hosts': settings['app:main']['elasticsearch'],
+            'timeout': 60
+        }
+
+        self._stats = stats(**es_params)
 
     def _stats_dispatcher(self, *args, **kwargs):
 

@@ -36,6 +36,7 @@ def construct_aggs(aggs, size=0):
 
     data = {}
     point = None
+
     def join(field, point=None):
         default = {
             field: {
@@ -61,7 +62,7 @@ def construct_aggs(aggs, size=0):
 
 def stats(*args, **kwargs):
 
-    if not 'hosts' in kwargs:
+    if 'hosts' not in kwargs:
         kwargs['hosts'] = ['esd.scielo.org']
 
     kwargs['timeout'] = kwargs.get('timeout', 60)
@@ -116,7 +117,7 @@ class Stats(Elasticsearch):
                 )
             )
 
-        if not doc_type in ALLOWED_DOC_TYPES_N_FACETS.keys():
+        if doc_type not in ALLOWED_DOC_TYPES_N_FACETS.keys():
             raise ValueError(
                 u'DocumentType not allowed, %s, expected %s' % (
                     doc_type,
@@ -125,7 +126,7 @@ class Stats(Elasticsearch):
             )
 
         for agg in aggs:
-            if not agg in ALLOWED_DOC_TYPES_N_FACETS[doc_type]:
+            if agg not in ALLOWED_DOC_TYPES_N_FACETS[doc_type]:
                 raise ValueError(
                     u'Aggregation not allowed, %s, expected %s' % (
                         aggs,
@@ -144,14 +145,14 @@ class Stats(Elasticsearch):
         if filters:
             must_terms = []
             for param, value in filters.items():
-                if not param in ALLOWED_DOC_TYPES_N_FACETS[doc_type]:
+                if param not in ALLOWED_DOC_TYPES_N_FACETS[doc_type]:
                     raise ValueError(
                         u'Filter not allowed, %s expected %s' % (
                             param,
                             str(ALLOWED_DOC_TYPES_N_FACETS[doc_type])
                         )
                     )
-                must_terms.append({'term': {param:value}})
+                must_terms.append({'term': {param: value}})
 
             body['query'] = {
                 "bool": {
