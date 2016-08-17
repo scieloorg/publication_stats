@@ -40,4 +40,4 @@ if __name__ == '__main__':
   ]
 
 
-  print json.loads(client.search('article', json.dumps(body), parameters))
+  print(json.loads(client.search('article', json.dumps(body), parameters)))

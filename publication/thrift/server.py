@@ -47,7 +47,7 @@ class Dispatcher(object):
 
     def search(self, doc_type, body, parameters):
 
-        params = {i.key:i.value for i in parameters}
+        params = {i.key: i.value for i in parameters}
         params['doc_type'] = doc_type
         params['body'] = json.loads(body)
 
@@ -145,7 +145,6 @@ class Dispatcher(object):
             )
 
         return result
-
 
     def document(self, aggs=None, filters=None):
 

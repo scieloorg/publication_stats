@@ -11,7 +11,7 @@ from elasticsearch.client import IndicesClient
 
 from publication import utils
 from thrift import clients
-import choices
+from processing import choices
 
 logger = logging.getLogger(__name__)
 
