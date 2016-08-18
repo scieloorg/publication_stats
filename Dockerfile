@@ -8,6 +8,7 @@ COPY docker/entrypoint.sh /app/docker/entrypoint.sh
 WORKDIR /app
 
 RUN pip install -r requirements.txt
+RUN pip install gunicorn
 RUN python docker/generate_production_ini.py
 
 ENV PUBLICATIONSTATS_SETTINGS_FILE=/app/production.ini
