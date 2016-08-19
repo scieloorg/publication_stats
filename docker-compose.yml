@@ -7,5 +7,6 @@ services:
     restart: always
     ports:
       - "11620:11620"
+      - "8000:8000"
     links:
       - org.scielo.publication_stats_thriftserver:org.scielo.publication_stats_thriftserver
