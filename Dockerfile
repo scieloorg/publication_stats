@@ -2,6 +2,9 @@ FROM python:3.5.2
 
 MAINTAINER tecnologia@scielo.org
 
+RUN apt-get update && apt-get install -y supervisor
+RUN mkdir -p /var/log/supervisor
+
 COPY requirements.txt /app/requirements.txt
 COPY production.ini-TEMPLATE /app/production.ini-TEMPLATE
 COPY docker/generate_production_ini.py /app/docker/generate_production_ini.py
