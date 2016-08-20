@@ -13,8 +13,10 @@ def main(global_config, **settings):
     hosts = aslist(settings['elasticsearch'])
 
     def add_index(request):
-        return controller.stats(hosts=hosts, sniff_on_start=True, 
-            sniff_on_connection_fail=True)
+        return controller.stats(
+            hosts=hosts,
+            sniff_on_connection_fail=True
+        )
 
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
