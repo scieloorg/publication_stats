@@ -8,8 +8,4 @@ install:
 script:
   - python setup.py test
 before_script:
-<<<<<<< HEAD
   - cp ./production.ini-TEMPLATE ./config.ini
-=======
-  - cp ./development.ini-TEMPLATE ./config.ini
->>>>>>> master
