@@ -7,14 +7,7 @@ the SciELO Network databases.
 Build Status
 ============
 
-Master:
-
-.. image:: https://travis-ci.org/scieloorg/publication_stats.svg?branch=master
-    :target: https://travis-ci.org/scieloorg/publication_stats
-
-Beta:
-
-.. image:: https://travis-ci.org/scieloorg/publication_stats.svg?branch=beta
+.. image:: https://travis-ci.org/scieloorg/publication_stats.svg
     :target: https://travis-ci.org/scieloorg/publication_stats
 
 Docker
