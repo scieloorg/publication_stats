@@ -5,5 +5,5 @@ thriftpy==0.3.1
 pyramid==1.5.7
 -e git+https://github.com/scieloorg/xylose@1.15.5#egg=xylose
 -e git+https://github.com/scieloorg/thriftpy-wrap@0.1.1#egg=thriftpywrap
--e git+https://github.com/scieloorg/publication_stats@0.8.5#egg=publication_stats
--e git+https://github.com/scieloorg/publication_stats@docker#egg=publication_stats
+# -e git+https://github.com/scieloorg/publication_stats@0.8.5#egg=publication
+-e git+https://github.com/scieloorg/publication_stats@docker#egg=publication
