@@ -17,6 +17,8 @@ RUN pip install gunicorn
 
 ENV PUBLICATIONSTATS_SETTINGS_FILE=/app/production.ini
 
+RUN cd src/publication-stats && python setup.py test && cd -
+
 EXPOSE 11620
 EXPOSE 8000
 

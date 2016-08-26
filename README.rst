@@ -1,22 +1,47 @@
 Publication Stats
 =================
 
-RPC Server to retrieve statistics from the documents and journals published at
+Web API and RPC Server to retrieve statistics from the documents and journals published at
 the SciELO Network databases.
 
-The statistics are related to the distribution of the following aspects:
+Build Status
+============
 
-**Journals**
+.. image:: https://travis-ci.org/scieloorg/publication_stats.svg
+    :target: https://travis-ci.org/scieloorg/publication_stats
 
- * Collections
- * Subject Areas
- * Inclusion Year at SciELO Network
+Docker
+======
 
-**Documents**
+Status
+------
 
- * Collections
- * Subject Areas
- * Available Languages
- * Affiliation Country
- * Publication Year
- * Journals (ISSN, Title)
+.. image:: https://images.microbadger.com/badges/image/scieloorg/publication_stats.svg
+    :target: https://hub.docker.com/r/scieloorg/publication_stats
+    
+.. image:: https://images.microbadger.com/badges/version/scieloorg/publication_stats.svg
+    :target: https://hub.docker.com/r/scieloorg/publication_stats
+
+Como utilizar esta imagem
+-------------------------
+
+$ docker run --name my-publication_stats -d my-publication_stats
+
+Como configurar o ELASTICSEARCH_HOST
+
+$ docker run --name my-publication_stats -e ELASTICSEARCH_HOST=my_eshost:27017 -d my-publication_stats my-publication_stats
+
+Os serviços ativos nesta imagem são:
+
+Web API: 127.0.0.1:8000
+Thrift Server: 127.0.0.1:11620
+
+É possível mapear essas portas para o hosting dos containers da seguinte forma:
+
+$ docker run --name my-publication_stats -e MONGODB_HOST=my_eshost:27017 -p 8000:8000 -p 11620:11620 -d my-publication_stats my-publication_stats
+
+Para executar os processamentos disponíveis em console scripts, executar:
+
+Carga de Licenças de uso:
+
+$ docker exec -i -t publication_stats publicationstats_loaddata --help
