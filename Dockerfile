@@ -17,7 +17,7 @@ RUN pip install gunicorn
 
 ENV PUBLICATIONSTATS_SETTINGS_FILE=/app/production.ini
 
-RUN docker/generate_production_ini.py
+RUN python docker/generate_production_ini.py
 RUN cd src/publication && python setup.py test && cd -
 
 EXPOSE 11620
