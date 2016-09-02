@@ -157,6 +157,8 @@ def fmt_document(document):
     data['publication_year'] = document.publication_date[0:4]
     subject_areas = document.journal.subject_areas or ['undefined']
     data['subject_areas'] = [i for i in subject_areas]
+    wos_subject_areas = document.journal.wos_subject_areas or ['undefined']
+    data['wol_subject_areas_wos'] = wos_subject_areas
     data['collection'] = document.collection_acronym
     data['document_type'] = document.document_type
     pgs = pages(document.start_page, document.end_page)
@@ -317,6 +319,10 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
                         "index": "not_analyzed"
                     },
                     "subject_areas": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "wos_subject_areas": {
                         "type": "string",
                         "index": "not_analyzed"
                     },
