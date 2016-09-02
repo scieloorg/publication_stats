@@ -1,0 +1,29 @@
+[Unit]
+Description=Publication Stats SciELO API
+Documentation=https://github.com/scieloorg/publication_stats
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutSec=0
+Restart=always
+RestartSec=1m
+EnvironmentFile=/etc/environment
+SuccessExitStatus=255
+
+ExecStartPre=-/usr/bin/docker kill %p-%i
+ExecStartPre=-/usr/bin/docker rm %p-%i
+ExecStartPre=/usr/bin/docker pull scieloorg/publication_stats
+ExecStart=/usr/bin/docker run \
+          --rm \
+          --name %p-%i \
+          -e ELASTICSEARCH_HOST=esd.scielo.org:9200 \
+          -p 8000:8000 \
+          -p 11620:11620 \
+          scieloorg/publication_stats
+
+ExecStop=/usr/bin/docker stop %p-%i
+ExecStopPost=-/usr/bin/docker rm %p-%i
+
+[X-Fleet]
+MachineMetadata=service=apis-scielo
