@@ -158,7 +158,7 @@ def fmt_document(document):
     subject_areas = document.journal.subject_areas or ['undefined']
     data['subject_areas'] = [i for i in subject_areas]
     wos_subject_areas = document.journal.wos_subject_areas or ['undefined']
-    data['wol_subject_areas_wos'] = wos_subject_areas
+    data['wos_subject_areas'] = wos_subject_areas
     data['collection'] = document.collection_acronym
     data['document_type'] = document.document_type
     pgs = pages(document.start_page, document.end_page)
