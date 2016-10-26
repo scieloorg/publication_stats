@@ -17,7 +17,7 @@ ExecStartPre=/usr/bin/docker pull scieloorg/publication_stats
 ExecStart=/usr/bin/docker run \
           --rm \
           --name %p-%i \
-          -e ELASTICSEARCH_HOST=esd.scielo.org:9200 \
+          -e ELASTICSEARCH_HOST=es.scielo.org:9200 \
           -p 8000:8000 \
           -p 11620:11620 \
           scieloorg/publication_stats
