@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch, NotFoundError
 from elasticsearch.client import IndicesClient
 
 from publication import utils
-from thrift import clients
+from articlemeta import client
 from processing import choices
 
 logger = logging.getLogger(__name__)
@@ -28,15 +28,9 @@ def articlemeta(address=None):
     address: 127.0.0.1:11720
     """
     address = address or settings['app:main'].get(
-        'articlemeta', '127.0.0.1:11720')
+        'articlemeta', 'articlemeta.scielo.org:11620')
 
-    host = address.split(':')[0]
-    try:
-        port = int(address.split(':')[1])
-    except:
-        port = 11720
-
-    return clients.ArticleMeta(host, port)
+    return client.ThriftClient(domain=address)
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
