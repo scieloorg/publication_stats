@@ -21,13 +21,15 @@ install_requires = [
     'pyramid_mako',
     'pyramid_debugtoolbar',
     'waitress',
+    'articlemetaapi==1.4.10',
+    'xylose==1.16.5'
     ]
 
 test_requires = []
 
 setup(
     name="publication",
-    version='1.10.6',
+    version='1.11.6',
     description="A SciELO RPC server and API to retrieve publication statistics from the SciELO Network ",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
@@ -47,7 +49,6 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     ],
     dependency_links=[
-        "git+https://github.com/scieloorg/xylose@1.15.5#egg=xylose",
         "git+https://github.com/scieloorg/thriftpy-wrap@0.1.1#egg=thriftpywrap"
     ],
     include_package_data=True,
