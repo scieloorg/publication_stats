@@ -20,6 +20,7 @@ settings = dict(config.items())
 
 FROM = datetime.now() - timedelta(days=30)
 FROM = FROM.isoformat()[:10]
+UNTIL = datetime.now().isoformat()[:10]
 ES = Elasticsearch(settings['app:main']['elasticsearch'], timeout=360)
 
 
@@ -189,7 +190,7 @@ def fmt_document(document):
     return data
 
 
-def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, identifiers=False):
+def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, until_date=UNTIL, identifiers=False):
 
     allowed_endpoints = ['journal', 'article']
 
@@ -199,14 +200,14 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, i
     for issn in issns:
         if endpoint == 'article':
             if identifiers:
-                itens = articlemeta().documents(collection=collection, issn=issn, from_date=from_date)
+                itens = articlemeta().documents(collection=collection, issn=issn, from_date=from_date, until_date=until_date)
             else:
-                itens = articlemeta().documents_history(collection=collection, from_date=from_date)
+                itens = articlemeta().documents_history(collection=collection, from_date=from_date, until_date=until_date)
         elif endpoint == 'journal':
             if identifiers:
                 itens = articlemeta().journals()
             else:
-                itens = articlemeta().journals_history(collection=collection, from_date=from_date)
+                itens = articlemeta().journals_history(collection=collection, from_date=from_date, until_date=until_date)
 
         for item in itens:
 
@@ -230,7 +231,7 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, i
             yield ('add', fmt(doc_ret))
 
 
-def run(doc_type, index='publication', collection=None, issns=None, from_date=FROM, identifiers=False):
+def run(doc_type, index='publication', collection=None, issns=None, from_date=FROM, until_date=UNTIL, identifiers=False):
 
     journal_settings_mappings = {
         "mappings": {
@@ -408,6 +409,12 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
                     }
                 }
             }
+        },
+        "settings": {
+            "index": {
+                "number_of_shards": 5,
+                "number_of_replicas": 1
+            }
         }
     }
 
@@ -426,7 +433,7 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
         logger.error('Invalid doc_type')
         exit()
 
-    for event, document in documents(endpoint, collection=collection, issns=issns, fmt=fmt, from_date=from_date, identifiers=identifiers):
+    for event, document in documents(endpoint, collection=collection, issns=issns, fmt=fmt, from_date=from_date, until_date=until_date, identifiers=identifiers):
         if event == 'delete':
             logger.debug('removing document %s from index %s' % (document['id'], doc_type))
             try:
@@ -468,6 +475,13 @@ def main():
         '--from_date',
         '-f',
         default=FROM,
+        help='ISO date like 2013-12-31'
+    )
+
+    parser.add_argument(
+        '--until_date',
+        '-u',
+        default=UNTIL,
         help='ISO date like 2013-12-31'
     )
 
@@ -514,4 +528,4 @@ def main():
     if len(args.issns) > 0:
         issns = utils.ckeck_given_issns(args.issns)
 
-    run(args.doc_type, index=args.index, collection=args.collection, issns=issns or [None], from_date=args.from_date, identifiers=args.identifiers)
+    run(args.doc_type, index=args.index, collection=args.collection, issns=issns or [None], from_date=args.from_date, until_date=args.until_date, identifiers=args.identifiers)
