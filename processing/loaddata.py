@@ -413,7 +413,7 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
         "settings": {
             "index": {
                 "number_of_shards": 5,
-                "number_of_replicas": 1
+                "number_of_replicas": 2
             }
         }
     }
