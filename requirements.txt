@@ -6,4 +6,4 @@ pyramid==1.5.7
 xylose==1.16.5
 articlemetaapi==1.6.11
 -e git+https://github.com/scieloorg/thriftpy-wrap@0.1.1#egg=thriftpywrap
--e git+https://github.com/scieloorg/publication_stats@1.12.7#egg=publication
+-e git+https://github.com/scieloorg/publication_stats@1.12.8#egg=publication
