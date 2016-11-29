@@ -29,7 +29,7 @@ test_requires = []
 
 setup(
     name="publication",
-    version='1.12.6',
+    version='1.12.7',
     description="A SciELO RPC server and API to retrieve publication statistics from the SciELO Network ",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",

@@ -210,7 +210,6 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
                 itens = articlemeta().journals_history(collection=collection, from_date=from_date, until_date=until_date)
 
         for item in itens:
-
             if not identifiers:  # mode history changes
                 history = item[0]
                 if history.event == 'delete':
@@ -227,6 +226,9 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
                 doc_ret = item[1]
             else:
                 doc_ret = item
+
+            if not doc_ret:
+                continue
 
             yield ('add', fmt(doc_ret))
 
