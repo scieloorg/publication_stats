@@ -15,7 +15,6 @@ install_requires = [
     'cython>=0.22',
     'thriftpy>=0.3.1',
     'thriftpywrap',
-    'xylose',
     'pyramid>=1.5.7',
     'pyramid_chameleon',
     'pyramid_mako',
