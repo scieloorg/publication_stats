@@ -15,6 +15,46 @@ from publication import utils
 
 logger = logging.getLogger(__name__)
 
+SENTRY_HANDLER = os.environ.get('SENTRY_HANDLER', None)
+LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', 'DEBUG')
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+
+    'formatters': {
+        'console': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            'datefmt': '%H:%M:%S',
+            },
+        },
+    'handlers': {
+        'console': {
+            'level': LOGGING_LEVEL,
+            'class': 'logging.StreamHandler',
+            'formatter': 'console'
+            }
+        },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': LOGGING_LEVEL,
+            'propagate': False,
+            },
+        'publication.thrift.server': {
+            'level': LOGGING_LEVEL,
+            'propagate': True,
+        },
+    }
+}
+
+if SENTRY_HANDLER:
+    LOGGING['handlers']['sentry'] = {
+        'level': 'ERROR',
+        'class': 'raven.handlers.logging.SentryHandler',
+        'dsn': SENTRY_HANDLER,
+    }
+    LOGGING['loggers']['']['handlers'].append('sentry')
+
 publication_stats_thrift = thriftpy.load(
     os.path.join(os.path.dirname(__file__), 'publication_stats.thrift'))
 

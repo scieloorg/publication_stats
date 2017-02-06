@@ -1,5 +1,6 @@
 # coding: utf-8
 import logging
+import logging.config
 from datetime import datetime, timedelta
 import argparse
 import os
@@ -15,51 +16,63 @@ from processing import choices
 
 logger = logging.getLogger(__name__)
 
-config = utils.Configuration.from_env()
-settings = dict(config.items())
+SENTRY_HANDLER = os.environ.get('SENTRY_HANDLER', None)
+LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', 'DEBUG')
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+
+    'formatters': {
+        'console': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            'datefmt': '%H:%M:%S',
+            },
+        },
+    'handlers': {
+        'console': {
+            'level': LOGGING_LEVEL,
+            'class': 'logging.StreamHandler',
+            'formatter': 'console'
+            }
+        },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': LOGGING_LEVEL,
+            'propagate': False,
+            },
+        'processing.loaddata': {
+            'level': LOGGING_LEVEL,
+            'propagate': True,
+        },
+    }
+}
+
+if SENTRY_HANDLER:
+    LOGGING['handlers']['sentry'] = {
+        'level': 'ERROR',
+        'class': 'raven.handlers.logging.SentryHandler',
+        'dsn': SENTRY_HANDLER,
+    }
+    LOGGING['loggers']['']['handlers'].append('sentry')
+
 
 FROM = datetime.now() - timedelta(days=30)
 FROM = FROM.isoformat()[:10]
 UNTIL = datetime.now().isoformat()[:10]
-ES = Elasticsearch(settings['app:main']['elasticsearch'], timeout=360)
+
+ES = Elasticsearch(
+    os.environ.get('ELASTICSEARCH', '127.0.0.1:9200'), timeout=360)
 
 
 def articlemeta(address=None):
     """
     address: 127.0.0.1:11720
     """
-    address = address or settings['app:main'].get(
-        'articlemeta', 'articlemeta.scielo.org:11620')
+    address = address or os.environ.get(
+        'ARTICLEMETA_THRIFTSERVER', 'articlemeta.scielo.org:11620')
 
     return client.ThriftClient(domain=address)
-
-
-def _config_logging(logging_level='INFO', logging_file=None):
-
-    allowed_levels = {
-        'DEBUG': logging.DEBUG,
-        'INFO': logging.INFO,
-        'WARNING': logging.WARNING,
-        'ERROR': logging.ERROR,
-        'CRITICAL': logging.CRITICAL
-    }
-
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    logger.setLevel(allowed_levels.get(logging_level, 'INFO'))
-
-    if logging_file:
-        hl = logging.FileHandler(logging_file, mode='a')
-    else:
-        hl = logging.StreamHandler()
-
-    hl.setFormatter(formatter)
-    hl.setLevel(allowed_levels.get(logging_level, 'INFO'))
-
-    logger.addHandler(hl)
-
-    return logger
 
 
 def fmt_journal(document):
@@ -205,7 +218,7 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
                 itens = articlemeta().documents_history(collection=collection, from_date=from_date, until_date=until_date)
         elif endpoint == 'journal':
             if identifiers:
-                itens = articlemeta().journals()
+                itens = articlemeta().journals(collection=collection)
             else:
                 itens = articlemeta().journals_history(collection=collection, from_date=from_date, until_date=until_date)
 
@@ -502,12 +515,6 @@ def main():
     )
 
     parser.add_argument(
-        '--logging_file',
-        '-o',
-        help='Full path to the log file'
-    )
-
-    parser.add_argument(
         '--doc_type',
         '-d',
         choices=['article', 'journal'],
@@ -517,14 +524,17 @@ def main():
     parser.add_argument(
         '--logging_level',
         '-l',
-        default='DEBUG',
+        default=LOGGING_LEVEL,
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
         help='Logggin level'
     )
 
     args = parser.parse_args()
+    LOGGING['handlers']['console']['level'] = args.logging_level
+    for lg, content in LOGGING['loggers'].items():
+        content['level'] = args.logging_level
 
-    _config_logging(args.logging_level, args.logging_file)
+    logging.config.dictConfig(LOGGING)
 
     issns = None
     if len(args.issns) > 0:

@@ -1,8 +1,11 @@
+import os
+
 from pyramid.renderers import JSONP
 from pyramid.config import Configurator
 from pyramid.settings import aslist, asbool
 
 from publication import controller
+
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -10,7 +13,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.add_renderer('jsonp', JSONP(param_name='callback', indent=4))
 
-    hosts = aslist(settings['elasticsearch'])
+    hosts = aslist(os.environ.get('ELASTICSEARCH', '127.0.0.1:9200'))
 
     def add_index(request):
         return controller.stats(
