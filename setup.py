@@ -28,14 +28,14 @@ test_requires = []
 
 setup(
     name="publication",
-    version='1.13.8',
+    version='1.13.9',
     description="A SciELO RPC server and API to retrieve publication statistics from the SciELO Network ",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
     license="BSD 2-clause",
     url="http://docs.scielo.org",
     keywords='scielo statistics',
-    packages=['publication'],
+    packages=find_packages(),
     classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Developers",
