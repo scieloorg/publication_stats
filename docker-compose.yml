@@ -1,12 +1,37 @@
-version '2'
+version: '2'
 
 services:
 
-  publication_stats_thriftserver:
-    build: .
-    restart: always
+  publicationstats_restfulapi:
+    build:
+      image: scieloorg/publication_stats:release-1.13.8
     ports:
       - "11620:11620"
-      - "8000:8000"
-    links:
-      - org.scielo.publication_stats_thriftserver:org.scielo.publication_stats_thriftserver
+    environment:
+      - ELASTICSEARCH=es.scielo.org:9200
+    command: gunicorn --paste production.ini -w 4 -b 0.0.0.0
+
+  publicationstats_thriftserver:
+    build:
+      image: scieloorg/publication_stats:release-1.13.8
+    ports:
+      - "11620:11620"
+    environment:
+      - ELASTICSEARCH=es.scielo.org:9200
+      - ARTICLEMETA_THRIFTSERVER=articlemeta.scielo.org:11620
+      - LOGGING_LEVEL=DEBUG
+      - SENTRY_HANDLER=https://9de0b79913614860856f7a938c336c94:4bf5046bbea9472f9796bb758f7c6419@homolog.sentry.scielo.org/8
+    command: publicationstats_thriftserver --port 11620 --host 0.0.0.0
+
+  publicationstats_update:
+    build:
+      image: scieloorg/publication_stats:release-1.13.8
+    volumes:
+      - .:/app
+    environment:
+      - ELASTICSEARCH=es.scielo.org:9200
+      - ARTICLEMETA_THRIFTSERVER=articlemeta.scielo.org:11620
+      - LOGGING_LEVEL=DEBUG
+      - SENTRY_HANDLER=https://4f398e43cf85413d9ae3d25f269c7a8a:4855030c8dc24b04ae5d34b3dbd0e5b9@homolog.sentry.scielo.org/6
+    command: publicationstats_loaddata --help
+    com.socialengine.rancher-cron.schedule: '0 0 1 * * 5'
