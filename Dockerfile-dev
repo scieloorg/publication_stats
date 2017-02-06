@@ -3,7 +3,7 @@ FROM python:3.5.2
 MAINTAINER tecnologia@scielo.org
 
 COPY . /app
-COPY production.ini /app/config.ini
+COPY production.ini-TEMPLATE /app/config.ini
 
 WORKDIR /app
 
