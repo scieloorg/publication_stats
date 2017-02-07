@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import argparse
 import os
 import sys
+import json
 
 import requests
 from elasticsearch import Elasticsearch, NotFoundError
@@ -246,7 +247,7 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
             yield ('add', fmt(doc_ret))
 
 
-def run(doc_type, index='publication', collection=None, issns=None, from_date=FROM, until_date=UNTIL, identifiers=False):
+def setup_index(index):
 
     journal_settings_mappings = {
         "mappings": {
@@ -438,6 +439,11 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
     except:
         logger.debug('Index already available')
 
+
+def run(doc_type, index='publication', collection=None, issns=None, from_date=FROM, until_date=UNTIL, identifiers=False, sanitization=True):
+
+    setup_index(index)
+
     if doc_type == 'journal':
         endpoint = 'journal'
         fmt = fmt_journal
@@ -466,6 +472,60 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
                 id=document['id'],
                 body=document
             )
+
+    if sanitization is True:
+        logger.info("Running sanitization process")
+        ind_ids = set()
+        art_ids = set()
+
+        logger.info("Loading ArticleMeta IDs")
+        if doc_type == 'document':
+            for issn in issns:
+                for item in articlemeta().documents(collection=collection, issn=issn, only_identifiers=True):
+                    code = '_'.join([item.collection, item.code])
+                    art_ids.add(code)
+                    logger.debug('Read item (%d): %s', len(art_ids), code)
+
+        if doc_type == 'journal':
+            for item in articlemeta().journals(collection=collection):
+                code = '_'.join([item.collection_acronym, item.scielo_issn])
+                art_ids.add(code)
+                logger.debug('Read item (%d): %s', len(art_ids), code)
+
+        logger.info("Loading Index IDs")
+        body = {
+            "query": {
+                "match_all": {}
+            },
+            "_source": ["id"]
+        }
+        result = ES.search(index=index, doc_type=doc_type, body=body, size=10000, scroll='1h')
+        while True:
+            scroll = {
+                'scroll': '1h',
+                'scroll_id': result['_scroll_id']
+            }
+            if len(result['hits']['hits']) == 0:
+                ES.clear_scroll(scroll_id=result['_scroll_id'])
+                break
+            for item in result['hits']['hits']:
+                ind_ids.add(item['_id'])
+                logger.debug('Read item (%d): %s', len(ind_ids), item['_id'])
+            result = ES.scroll(body=scroll, scroll='1h')
+
+        remove_ids = ind_ids - art_ids
+
+        if endpoint == 'article' and len(remove_ids) > 2000:
+            logger.warning('To many documents to remove (%d), skipping', len(remove_ids))
+            return
+
+        if endpoint == 'journal' and len(remove_ids) > 50:
+            logger.warning('To many journals to remove (%d), skipping', len(remove_ids))
+            return
+
+        for item in remove_ids:
+            logger.debug('Removing id: %s', item)
+            ES.delete(index=index, doc_type=doc_type, id=item)
 
 
 def main():
@@ -515,6 +575,13 @@ def main():
     )
 
     parser.add_argument(
+        '--sanitization',
+        '-s',
+        action='store_true',
+        help='Run cleaup process. This process will remove from index, every ID not available in ArticleMeta'
+    )
+
+    parser.add_argument(
         '--doc_type',
         '-d',
         choices=['article', 'journal'],
@@ -540,4 +607,4 @@ def main():
     if len(args.issns) > 0:
         issns = utils.ckeck_given_issns(args.issns)
 
-    run(args.doc_type, index=args.index, collection=args.collection, issns=issns or [None], from_date=args.from_date, until_date=args.until_date, identifiers=args.identifiers)
+    run(args.doc_type, index=args.index, collection=args.collection, issns=issns or [None], from_date=args.from_date, until_date=args.until_date, identifiers=args.identifiers, sanitization=args.sanitization)
