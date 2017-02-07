@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
   client = make_client(
       publication_stats_thrift.PublicationStats,
-      '127.0.0.1',
+      'localhost',
       11620
   )
 

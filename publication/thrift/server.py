@@ -11,8 +11,6 @@ import thriftpy
 import thriftpywrap
 from thriftpy.rpc import make_server
 
-from publication import utils
-
 logger = logging.getLogger(__name__)
 
 SENTRY_HANDLER = os.environ.get('SENTRY_HANDLER', None)
@@ -63,11 +61,8 @@ class Dispatcher(object):
 
     def __init__(self):
 
-        config = utils.Configuration.from_env()
-        settings = dict(config.items())
-
         es_params = {
-            'hosts': settings['app:main']['elasticsearch'],
+            'hosts': os.environ.get('ELASTICSEARCH', '127.0.0.1:9200'),
             'timeout': 60
         }
 

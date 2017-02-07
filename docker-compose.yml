@@ -3,13 +3,13 @@ version: '2'
 services:
 
   publicationstats-restfulapi:
-    image: scieloorg/publication_stats:release-1.13.9
+    image: scieloorg/publication_stats:release-1.13.10
     environment:
       - ELASTICSEARCH=es.scielo.org:9200
     command: gunicorn --paste production.ini -w 4 -b 0.0.0.0
 
   publicationstats-thriftserver:
-    image: scieloorg/publication_stats:release-1.13.9
+    image: scieloorg/publication_stats:release-1.13.10
     environment:
       - ELASTICSEARCH=es.scielo.org:9200
       - ARTICLEMETA_THRIFTSERVER=articlemeta.scielo.org:11620
@@ -18,7 +18,7 @@ services:
     command: publicationstats_thriftserver --port 11620 --host 0.0.0.0
 
   publicationstats-loaddata-journals:
-    image: scieloorg/publication_stats:release-1.13.9
+    image: scieloorg/publication_stats:release-1.13.10
     environment:
       - ELASTICSEARCH=es.scielo.org:9200
       - ARTICLEMETA_THRIFTSERVER=articlemeta.scielo.org:11620
@@ -29,7 +29,7 @@ services:
       io.rancher.container.start_once: 'true'
 
   publicationstats-loaddata-documents:
-    image: scieloorg/publication_stats:release-1.13.0
+    image: scieloorg/publication_stats:release-1.13.10
     environment:
       - ELASTICSEARCH=es.scielo.org:9200
       - ARTICLEMETA_THRIFTSERVER=articlemeta.scielo.org:11620
