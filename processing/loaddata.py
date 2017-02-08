@@ -6,9 +6,7 @@ import argparse
 import os
 import sys
 
-import requests
-from elasticsearch import Elasticsearch, NotFoundError
-from elasticsearch.client import IndicesClient
+from elasticsearch import Elasticsearch, NotFoundError, RequestError
 
 from publication import utils
 from articlemeta import client
@@ -119,7 +117,7 @@ def pages(first, last):
 
     try:
         pages = int(last)-int(first)
-    except:
+    except ValueError:
         pages = 0
 
     if pages >= 0:
@@ -132,12 +130,12 @@ def acceptancedelta(received, accepted):
 
     try:
         rec = datetime.strptime(received, '%Y-%m-%d')
-    except:
+    except ValueError:
         return None
 
     try:
         acc = datetime.strptime(accepted, '%Y-%m-%d')
-    except:
+    except ValueError:
         return None
 
     delta = acc-rec
@@ -435,7 +433,7 @@ def setup_index(index):
 
     try:
         ES.indices.create(index=index, body=journal_settings_mappings)
-    except:
+    except RequestError:
         logger.debug('Index already available')
 
 
@@ -455,16 +453,16 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
 
     for event, document in documents(endpoint, collection=collection, issns=issns, fmt=fmt, from_date=from_date, until_date=until_date, identifiers=identifiers):
         if event == 'delete':
-            logger.debug('removing document %s from index %s' % (document['id'], doc_type))
+            logger.debug('removing document %s from index %s', document['id'], doc_type)
             try:
                 ES.delete(index=index, doc_type=doc_type, id=document['id'])
             except NotFoundError:
-                logger.debug('Record already removed: %s' % document['id'])
+                logger.debug('Record already removed: %s', document['id'])
             except:
-                logger.error('Unexpected error: %s' % sys.exc_info()[0])
+                logger.error('Unexpected error: %s', sys.exc_info()[0])
 
         else:  # event would be ['add', 'update']
-            logger.debug('loading document %s into index %s' % (document['id'], doc_type))
+            logger.debug('loading document %s into index %s', document['id'], doc_type)
             ES.index(
                 index=index,
                 doc_type=doc_type,
