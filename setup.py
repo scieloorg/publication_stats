@@ -11,7 +11,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 install_requires = [
     'requests==2.11.1',
-    'elasticsearch==1.5.0',
+    'elasticsearch==5.1.0',
     'cython==0.22',
     'thriftpy==0.3.1',
     'thriftpywrap',

@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import argparse
 import os
 import sys
-import json
 
 import requests
 from elasticsearch import Elasticsearch, NotFoundError
