@@ -119,6 +119,8 @@ def pages(first, last):
         pages = int(last)-int(first)
     except ValueError:
         pages = 0
+    except TypeError:
+        pages = 0
 
     if pages >= 0:
         return pages
@@ -132,10 +134,14 @@ def acceptancedelta(received, accepted):
         rec = datetime.strptime(received, '%Y-%m-%d')
     except ValueError:
         return None
+    except TypeError:
+        return None
 
     try:
         acc = datetime.strptime(accepted, '%Y-%m-%d')
     except ValueError:
+        return None
+    except TypeError:
         return None
 
     delta = acc-rec
@@ -240,10 +246,13 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
             else:
                 doc_ret = item
 
-            if not doc_ret:
+
+            if not doc_ret or not doc_ret.data:
                 continue
 
-            yield ('add', fmt(doc_ret))
+            formated_document = fmt(doc_ret)
+
+            yield ('add', formated_document)
 
 
 def setup_index(index):
@@ -456,7 +465,8 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
     for event, document in documents(
         endpoint,
         collection=collection,
-        issns=issns, fmt=fmt,
+        issns=issns,
+        fmt=fmt,
         from_date=from_date,
         until_date=until_date,
         identifiers=identifiers
