@@ -1,15 +1,12 @@
 # coding: utf-8
 import json
-import argparse
 import logging
 import os
-import sys
 
 from publication.controller import stats, ServerError
 
 import thriftpy
 import thriftpywrap
-from thriftpy.rpc import make_server
 
 logger = logging.getLogger(__name__)
 

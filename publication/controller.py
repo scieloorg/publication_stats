@@ -3,10 +3,7 @@ import logging
 import sys
 
 import elasticsearch
-from elasticsearch import ElasticsearchException
 from elasticsearch import Elasticsearch
-from elasticsearch.client import IndicesClient
-from xylose.scielodocument import Article, Journal
 
 ALLOWED_DOC_TYPES_N_FACETS = {
     'journal': [
@@ -37,12 +34,12 @@ def construct_aggs(aggs, size=0):
     data = {}
     point = None
 
-    def join(field, point=None):
+    def join(field, point=None, size=0):
         default = {
             field: {
                 "terms": {
                     "field": field,
-                    "size": 0
+                    "size": size
                 }
             }
         }
@@ -55,7 +52,7 @@ def construct_aggs(aggs, size=0):
             return data['aggs'][field]
 
     for item in aggs:
-        point = join(item, point=point)
+        point = join(item, point=point, size=size)
 
     return data
 

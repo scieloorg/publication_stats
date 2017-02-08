@@ -595,7 +595,7 @@ def main():
 
     args = parser.parse_args()
     LOGGING['handlers']['console']['level'] = args.logging_level
-    for lg, content in LOGGING['loggers'].items():
+    for content in LOGGING['loggers'].values():
         content['level'] = args.logging_level
 
     logging.config.dictConfig(LOGGING)
