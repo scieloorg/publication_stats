@@ -94,7 +94,7 @@ class Dispatcher(object):
         try:
             data_str = json.dumps(data)
         except ValueError as e:
-            logging.error('Invalid JSON data: %s' % data_str)
+            logging.error('Invalid JSON data: %s', data_str)
             raise publication_stats_thrift.ValueError(message=e.message)
 
         return data_str
