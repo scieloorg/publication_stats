@@ -88,11 +88,11 @@ class Stats(Elasticsearch):
         except elasticsearch.SerializationError:
             logging.error('ElasticSearch SerializationError')
             raise ServerError()
-        except elasticsearch.TransportError as e:
-            logging.error('ElasticSearch TransportError: %s' % e.error)
-            raise ServerError()
         except elasticsearch.ConnectionError as e:
             logging.error('ElasticSearch ConnectionError: %s' % e.error)
+            raise ServerError()
+        except elasticsearch.TransportError as e:
+            logging.error('ElasticSearch TransportError: %s' % e.error)
             raise ServerError()
         except:
             logging.error("Unexpected error: %s" % sys.exc_info()[0])
