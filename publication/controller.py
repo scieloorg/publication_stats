@@ -3,10 +3,7 @@ import logging
 import sys
 
 import elasticsearch
-from elasticsearch import ElasticsearchException
 from elasticsearch import Elasticsearch
-from elasticsearch.client import IndicesClient
-from xylose.scielodocument import Article, Journal
 
 ALLOWED_DOC_TYPES_N_FACETS = {
     'journal': [
@@ -37,12 +34,12 @@ def construct_aggs(aggs, size=0):
     data = {}
     point = None
 
-    def join(field, point=None):
+    def join(field, point=None, size=0):
         default = {
             field: {
                 "terms": {
                     "field": field,
-                    "size": 0
+                    "size": size
                 }
             }
         }
@@ -55,7 +52,7 @@ def construct_aggs(aggs, size=0):
             return data['aggs'][field]
 
     for item in aggs:
-        point = join(item, point=point)
+        point = join(item, point=point, size=size)
 
     return data
 
@@ -87,16 +84,16 @@ class Stats(Elasticsearch):
             data = self.search(*args, **kwargs)
         except elasticsearch.SerializationError:
             logging.error('ElasticSearch SerializationError')
-            raise ServerError()
-        except elasticsearch.TransportError as e:
-            logging.error('ElasticSearch TransportError: %s' % e.error)
-            raise ServerError()
+            raise ServerError('ElasticSearch SerializationError')
         except elasticsearch.ConnectionError as e:
-            logging.error('ElasticSearch ConnectionError: %s' % e.error)
-            raise ServerError()
+            logging.error('ElasticSearch ConnectionError: %s', e.error)
+            raise ServerError('ElasticSearch ConnectionError: %s' % e.error)
+        except elasticsearch.TransportError as e:
+            logging.error('ElasticSearch TransportError: %s', e.error)
+            raise ServerError('ElasticSearch TransportError: %s' % e.error)
         except:
-            logging.error("Unexpected error: %s" % sys.exc_info()[0])
-            raise ServerError()
+            logging.error("Unexpected error: %s", sys.exc_info()[0])
+            raise ServerError("Unexpected error: %s" % sys.exc_info()[0])
 
         return data
 

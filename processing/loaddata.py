@@ -5,11 +5,8 @@ from datetime import datetime, timedelta
 import argparse
 import os
 import sys
-import json
 
-import requests
-from elasticsearch import Elasticsearch, NotFoundError
-from elasticsearch.client import IndicesClient
+from elasticsearch import Elasticsearch, NotFoundError, RequestError
 
 from publication import utils
 from articlemeta import client
@@ -120,7 +117,7 @@ def pages(first, last):
 
     try:
         pages = int(last)-int(first)
-    except:
+    except ValueError:
         pages = 0
 
     if pages >= 0:
@@ -133,12 +130,12 @@ def acceptancedelta(received, accepted):
 
     try:
         rec = datetime.strptime(received, '%Y-%m-%d')
-    except:
+    except ValueError:
         return None
 
     try:
         acc = datetime.strptime(accepted, '%Y-%m-%d')
-    except:
+    except ValueError:
         return None
 
     delta = acc-rec
@@ -177,7 +174,9 @@ def fmt_document(document):
     data['aff_states_name'] = ['undefined']
     if document.mixed_affiliations:
         data['aff_countries'] = list(set([country(aff.get('country', 'undefined')) for aff in document.mixed_affiliations]))
-        data['aff_states_code'] = list(set([state(aff.get('state', 'undefined'), country(aff.get('country', 'undefined'))) for aff in document.mixed_affiliations]))
+        data['aff_states_code'] = list(set([state(
+            aff.get('state', 'undefined'),
+            country(aff.get('country', 'undefined'))) for aff in document.mixed_affiliations]))
         data['aff_names'] = list(set([aff['institution'] for aff in document.mixed_affiliations if aff.get('institution', None)]))
         data['aff_names_analyzed'] = data['aff_names']
         data['aff_names_cleaned'] = list(set([utils.cleanup_string(i) for i in data['aff_names']]))
@@ -208,7 +207,7 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
 
     allowed_endpoints = ['journal', 'article']
 
-    if not endpoint in allowed_endpoints:
+    if endpoint not in allowed_endpoints:
         raise TypeError('Invalid endpoint, expected one of: %s' % str(allowed_endpoints))
 
     for issn in issns:
@@ -436,7 +435,7 @@ def setup_index(index):
 
     try:
         ES.indices.create(index=index, body=journal_settings_mappings)
-    except:
+    except RequestError:
         logger.debug('Index already available')
 
 
@@ -454,18 +453,25 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
         logger.error('Invalid doc_type')
         exit()
 
-    for event, document in documents(endpoint, collection=collection, issns=issns, fmt=fmt, from_date=from_date, until_date=until_date, identifiers=identifiers):
+    for event, document in documents(
+        endpoint,
+        collection=collection,
+        issns=issns, fmt=fmt,
+        from_date=from_date,
+        until_date=until_date,
+        identifiers=identifiers
+    ):
         if event == 'delete':
-            logger.debug('removing document %s from index %s' % (document['id'], doc_type))
+            logger.debug('removing document %s from index %s', document['id'], doc_type)
             try:
                 ES.delete(index=index, doc_type=doc_type, id=document['id'])
             except NotFoundError:
-                logger.debug('Record already removed: %s' % document['id'])
+                logger.debug('Record already removed: %s', document['id'])
             except:
-                logger.error('Unexpected error: %s' % sys.exc_info()[0])
+                logger.error('Unexpected error: %s', sys.exc_info()[0])
 
         else:  # event would be ['add', 'update']
-            logger.debug('loading document %s into index %s' % (document['id'], doc_type))
+            logger.debug('loading document %s into index %s', document['id'], doc_type)
             ES.index(
                 index=index,
                 doc_type=doc_type,
@@ -598,7 +604,7 @@ def main():
 
     args = parser.parse_args()
     LOGGING['handlers']['console']['level'] = args.logging_level
-    for lg, content in LOGGING['loggers'].items():
+    for content in LOGGING['loggers'].values():
         content['level'] = args.logging_level
 
     logging.config.dictConfig(LOGGING)

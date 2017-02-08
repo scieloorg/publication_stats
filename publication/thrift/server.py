@@ -1,15 +1,12 @@
 # coding: utf-8
 import json
-import argparse
 import logging
 import os
-import sys
 
 from publication.controller import stats, ServerError
 
 import thriftpy
 import thriftpywrap
-from thriftpy.rpc import make_server
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +94,7 @@ class Dispatcher(object):
         try:
             data_str = json.dumps(data)
         except ValueError as e:
-            logging.error('Invalid JSON data: %s' % data_str)
+            logging.error('Invalid JSON data: %s', data_str)
             raise publication_stats_thrift.ValueError(message=e.message)
 
         return data_str

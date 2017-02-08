@@ -2,7 +2,7 @@ import os
 
 from pyramid.renderers import JSONP
 from pyramid.config import Configurator
-from pyramid.settings import aslist, asbool
+from pyramid.settings import aslist
 
 from publication import controller
 
