@@ -84,16 +84,16 @@ class Stats(Elasticsearch):
             data = self.search(*args, **kwargs)
         except elasticsearch.SerializationError:
             logging.error('ElasticSearch SerializationError')
-            raise ServerError()
+            raise ServerError('ElasticSearch SerializationError')
         except elasticsearch.ConnectionError as e:
-            logging.error('ElasticSearch ConnectionError: %s' % e.error)
-            raise ServerError()
+            logging.error('ElasticSearch ConnectionError: %s', e.error)
+            raise ServerError('ElasticSearch ConnectionError: %s' % e.error)
         except elasticsearch.TransportError as e:
-            logging.error('ElasticSearch TransportError: %s' % e.error)
-            raise ServerError()
+            logging.error('ElasticSearch TransportError: %s', e.error)
+            raise ServerError('ElasticSearch TransportError: %s' % e.error)
         except:
-            logging.error("Unexpected error: %s" % sys.exc_info()[0])
-            raise ServerError()
+            logging.error("Unexpected error: %s", sys.exc_info()[0])
+            raise ServerError("Unexpected error: %s" % sys.exc_info()[0])
 
         return data
 
