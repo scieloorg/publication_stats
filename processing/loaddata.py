@@ -257,6 +257,8 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
 
 def setup_index(index):
 
+    logger.info('Setting up index %s', index)
+
     journal_settings_mappings = {
         "mappings": {
             "journal": {
@@ -450,6 +452,8 @@ def setup_index(index):
 
 def run(doc_type, index='publication', collection=None, issns=None, from_date=FROM, until_date=UNTIL, identifiers=False, sanitization=True):
 
+    logger.info('Running Publication Stats Update')
+
     setup_index(index)
 
     if doc_type == 'journal':
@@ -461,6 +465,8 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
     else:
         logger.error('Invalid doc_type')
         exit()
+
+    logger.info('Updating %s index', endpoint)
 
     for event, document in documents(
         endpoint,
@@ -495,20 +501,20 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
         art_ids = set()
 
         logger.info("Loading ArticleMeta IDs")
-        if doc_type == 'document':
+        if doc_type == 'article':
             for issn in issns:
                 for item in articlemeta().documents(collection=collection, issn=issn, only_identifiers=True):
                     code = '_'.join([item.collection, item.code])
                     art_ids.add(code)
-                    logger.debug('Read item (%d): %s', len(art_ids), code)
+                    logger.debug('Read item from ArticleMeta (%d): %s', len(art_ids), code)
 
         if doc_type == 'journal':
             for item in articlemeta().journals(collection=collection):
                 code = '_'.join([item.collection_acronym, item.scielo_issn])
                 art_ids.add(code)
-                logger.debug('Read item (%d): %s', len(art_ids), code)
+                logger.debug('Read item from ArticleMeta (%d): %s', len(art_ids), code)
 
-        logger.info("Loading Index IDs")
+        logger.info("Loading ElasticSearch Index IDs")
         body = {
             "query": {
                 "match_all": {}
@@ -526,7 +532,7 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
                 break
             for item in result['hits']['hits']:
                 ind_ids.add(item['_id'])
-                logger.debug('Read item (%d): %s', len(ind_ids), item['_id'])
+                logger.debug('Read item from ElasticSearch Index (%d): %s', len(ind_ids), item['_id'])
             result = ES.scroll(body=scroll, scroll='1h')
 
         remove_ids = ind_ids - art_ids
