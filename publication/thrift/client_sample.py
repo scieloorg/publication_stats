@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     client = make_client(
         publication_stats_thrift.PublicationStats,
-        'localhost',
+        'publication.scielo.org',
         11620
     )
 
