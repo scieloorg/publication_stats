@@ -68,7 +68,7 @@ def articlemeta(address=None):
     address: 127.0.0.1:11720
     """
     address = address or os.environ.get(
-        'ARTICLEMETA_THRIFTSERVER', 'articlemeta.scielo.org:11620')
+        'ARTICLEMETA_THRIFTSERVER', 'articlemeta.scielo.org:11621')
 
     return client.ThriftClient(domain=address)
 
@@ -517,7 +517,9 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
         logger.info("Loading ElasticSearch Index IDs")
         body = {
             "query": {
-                "match_all": {}
+                "match": {
+                    "collection": collection
+                }
             },
             "_source": ["id"]
         }
