@@ -19,8 +19,8 @@ install_requires = [
     'pyramid_chameleon',
     'pyramid_mako',
     'waitress',
-    'articlemetaapi==1.8.16',
-    'xylose==1.17.5',
+    'articlemetaapi==1.11.16',
+    'xylose==1.18.6',
     'raven'
     ]
 
@@ -28,7 +28,7 @@ test_requires = []
 
 setup(
     name="publication",
-    version='1.17.14',
+    version='1.18.14',
     description="A SciELO RPC server and API to retrieve publication statistics from the SciELO Network ",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
