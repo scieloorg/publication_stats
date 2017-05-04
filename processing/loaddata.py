@@ -515,14 +515,24 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
                 logger.debug('Read item from ArticleMeta (%d): %s', len(art_ids), code)
 
         logger.info("Loading ElasticSearch Index IDs")
-        body = {
-            "query": {
+
+        if collection:
+            query = {
                 "match": {
                     "collection": collection
+
                 }
-            },
+            }
+        else:
+            query = {
+                "match_all": {}
+            }
+
+        body = {
+            "query": query,
             "_source": ["id"]
         }
+
         result = ES.search(index=index, doc_type=doc_type, body=body, size=10000, scroll='1h')
         while True:
             scroll = {
