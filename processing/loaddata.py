@@ -561,6 +561,8 @@ def run(doc_type, index='publication', collection=None, issns=None, from_date=FR
             logger.debug('Removing id: %s', item)
             ES.delete(index=index, doc_type=doc_type, id=item)
 
+        logger.info('Processing finished')
+
 
 def main():
 
