@@ -169,6 +169,7 @@ def fmt_document(document):
     data['publication_year'] = document.publication_date[0:4]
     subject_areas = document.journal.subject_areas or ['undefined']
     data['subject_areas'] = [i for i in subject_areas]
+    data['is_multidisciplinary'] = 1 if len(subject_areas) > 2 else 0
     wos_subject_areas = document.journal.wos_subject_areas or ['undefined']
     data['wos_subject_areas'] = wos_subject_areas
     data['collection'] = document.collection_acronym

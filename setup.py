@@ -10,7 +10,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 install_requires = [
-    'requests==2.11.1',
+    'requests>=2.11.1',
     'elasticsearch==5.1.0',
     'cython==0.22',
     'thriftpy==0.3.1',
@@ -19,8 +19,8 @@ install_requires = [
     'pyramid_chameleon',
     'pyramid_mako',
     'waitress',
-    'articlemetaapi==1.11.16',
-    'xylose==1.18.6',
+    'articlemetaapi==1.14.19',
+    'xylose==1.24.0',
     'raven'
     ]
 
@@ -28,7 +28,7 @@ test_requires = []
 
 setup(
     name="publication",
-    version='1.20.15',
+    version='1.21.0',
     description="A SciELO RPC server and API to retrieve publication statistics from the SciELO Network ",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
