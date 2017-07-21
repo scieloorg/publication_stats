@@ -79,8 +79,8 @@ def fmt_journal(document):
     data['id'] = '_'.join([document.collection_acronym, document.scielo_issn])
     data['issn'] = document.scielo_issn
     data['collection'] = document.collection_acronym
-    data['subject_areas'] = document.subject_areas
-    data['is_multidisciplinary'] = 1 if len(document.subject_areas) > 2 else 0
+    data['subject_areas'] = document.subject_areas or ['undefined']
+    data['is_multidisciplinary'] = 1 if len(data['subject_areas']) > 2 else 0
     data['included_at_year'] = document.creation_date[0:4]
     data['status'] = document.current_status
     data['title'] = document.title
@@ -168,8 +168,8 @@ def fmt_document(document):
     data['processing_date'] = document.processing_date
     data['publication_date'] = document.publication_date
     data['publication_year'] = document.publication_date[0:4]
-    data['subject_areas'] = subject_areas = document.journal.subject_areas or ['undefined']
-    data['is_multidisciplinary'] = 1 if len(subject_areas) > 2 else 0
+    data['subject_areas'] = document.journal.subject_areas or ['undefined']
+    data['is_multidisciplinary'] = 1 if len(data['subject_areas']) > 2 else 0
     wos_subject_areas = document.journal.wos_subject_areas or ['undefined']
     data['wos_subject_areas'] = wos_subject_areas
     data['collection'] = document.collection_acronym
