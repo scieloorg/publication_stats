@@ -9,6 +9,8 @@ from configparser import ConfigParser
 REGEX_ISSN = re.compile(r"^[0-9]{4}-[0-9]{3}[0-9xX]$")
 TAG_RE = re.compile(r'<[^>]+>')
 
+ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'publication')
+
 
 def remove_tags(text):
     return TAG_RE.sub('', text)

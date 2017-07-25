@@ -1,9 +1,12 @@
 # coding: utf-8
+import os
 import logging
 import sys
 
 import elasticsearch
 from elasticsearch import Elasticsearch
+
+from publication import utils
 
 ALLOWED_DOC_TYPES_N_FACETS = {
     'journal': [
@@ -99,7 +102,7 @@ class Stats(Elasticsearch):
 
     def publication_search(self, parameters):
 
-        parameters['index'] = 'publication'
+        parameters['index'] = utils.ELASTICSEARCH_INDEX
         query_result = self._query_dispatcher(**parameters)
 
         return query_result
@@ -158,7 +161,7 @@ class Stats(Elasticsearch):
             }
 
         query_result = self._query_dispatcher(
-            index='publication',
+            index=utils.ELASTICSEARCH_INDEX,
             doc_type=doc_type,
             search_type='count',
             body=body
