@@ -459,7 +459,7 @@ def setup_index(index):
         logger.debug('Index already available')
 
 
-def run(doc_type, index=utils.ELATICSEARCH_INDEX, collection=None, issns=None, from_date=FROM, until_date=UNTIL, identifiers=False, sanitization=True):
+def run(doc_type, index=utils.ELASTICSEARCH_INDEX, collection=None, issns=None, from_date=FROM, until_date=UNTIL, identifiers=False, sanitization=True):
 
     logger.info('Running Publication Stats Update')
 
@@ -608,7 +608,7 @@ def main():
     parser.add_argument(
         '--index',
         '-x',
-        default=utils.ELATICSEARCH_INDEX,
+        default=utils.ELASTICSEARCH_INDEX,
         help='Define the index to populate.'
     )
 
