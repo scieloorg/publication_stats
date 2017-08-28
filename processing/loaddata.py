@@ -79,6 +79,10 @@ def fmt_journal(document):
     data['id'] = '_'.join([document.collection_acronym, document.scielo_issn])
     data['issn'] = document.scielo_issn
     data['collection'] = document.collection_acronym
+    data['creation_year'] = document.creation_date[0:4]
+    data['creation_date'] = document.creation_date
+    data['processing_year'] = document.processing_date[0:4]
+    data['processing_date'] = document.processing_date
     data['subject_areas'] = document.subject_areas or ['undefined']
     data['subject_areas'] = ['Multidisciplinary'] if len(data['subject_areas']) > 2 else data['subject_areas']
     data['is_multidisciplinary'] = 1 if len(data['subject_areas']) > 2 else 0
@@ -212,7 +216,7 @@ def fmt_document(document):
     return data
 
 
-def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, until_date=UNTIL, identifiers=False):
+def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, until_date=UNTIL):
 
     allowed_endpoints = ['journal', 'article']
 
@@ -221,39 +225,15 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
 
     for issn in issns:
         if endpoint == 'article':
-            if identifiers:
-                itens = articlemeta().documents(collection=collection, issn=issn, from_date=from_date, until_date=until_date)
-            else:
-                itens = articlemeta().documents_history(collection=collection, from_date=from_date, until_date=until_date)
+            itens = articlemeta().documents(collection=collection, issn=issn, from_date=from_date, until_date=until_date)
         elif endpoint == 'journal':
-            if identifiers:
-                itens = articlemeta().journals(collection=collection)
-            else:
-                itens = articlemeta().journals_history(collection=collection, from_date=from_date, until_date=until_date)
+            itens = articlemeta().journals(collection=collection)
 
         for item in itens:
-            if not identifiers:  # mode history changes
-                history = item[0]
-                if history.event == 'delete':
-                    delete_params = {'collection': history.collection}
-                    if endpoint == 'article':
-                        delete_params['code'] = history.code or ''
-                    elif endpoint == 'journal':
-                        delete_params['issn'] = history.code[0] or ''
-                    code = delete_params.get('code', delete_params.get('issn', ''))
-                    if not code:
-                        continue
-                    delete_params['id'] = '_'.join([history.collection, code])
-                    yield ('delete', delete_params)
-                doc_ret = item[1]
-            else:
-                doc_ret = item
-
-
-            if not doc_ret or not doc_ret.data:
+            if not item or not item.data:
                 continue
 
-            formated_document = fmt(doc_ret)
+            formated_document = fmt(item)
 
             yield ('add', formated_document)
 
@@ -459,7 +439,128 @@ def setup_index(index):
         logger.debug('Index already available')
 
 
-def run(doc_type, index=utils.ELASTICSEARCH_INDEX, collection=None, issns=None, from_date=FROM, until_date=UNTIL, identifiers=False, sanitization=True):
+def differential_mode(index, endpoint, fmt, collection=None, delete=False):
+    art_meta = articlemeta()
+    logger.info("Running differetial process")
+    ind_ids = set()
+    art_ids = set()
+    logger.info("Loading ArticleMeta IDs")
+    if endpoint == 'article':
+        for ndx, item in enumerate(articlemeta().documents(collection=collection, only_identifiers=True), 1):
+            code = '_'.join([item.collection, item.code, item.processing_date])
+            art_ids.add(code)
+            logger.debug('Read item from ArticleMeta (%d): %s', ndx, code)
+
+    if endpoint == 'journal':
+        for ndx, item in enumerate(articlemeta().journals(collection=collection), 1):
+            code = '_'.join([item.collection_acronym, item.scielo_issn, item.processing_date])
+            art_ids.add(code)
+            logger.debug('Read item from ArticleMeta (%d): %s', ndx, code)
+
+    logger.info("Loading ElasticSearch Index IDs")
+
+    if collection:
+        query = {
+            "match": {
+                "collection": collection
+
+            }
+        }
+    else:
+        query = {
+            "match_all": {}
+        }
+
+    body = {
+        "query": query,
+        "_source": ["id", "processing_date"]
+    }
+
+    result = ES.search(index=index, doc_type=endpoint, body=body, size=10000, scroll='1h')
+    while True:
+        scroll = {
+            'scroll': '1h',
+            'scroll_id': result['_scroll_id']
+        }
+        if len(result['hits']['hits']) == 0:
+            ES.clear_scroll(scroll_id=result['_scroll_id'])
+            break
+        for ndx, item in enumerate(result['hits']['hits'], 1):
+            code = "_".join([item['_source']['id'], item['_source'].get('processing_date', '1900-01-01')])
+            ind_ids.add(code)
+            logger.debug('Read item from ElasticSearch Index (%d): %s', ndx, code)
+        result = ES.scroll(body=scroll, scroll='1h')
+
+    # Ids to include
+    logger.info("Running include records process.")
+    include_ids = art_ids - ind_ids
+    total_to_include = len(include_ids)
+    logger.info("Including (%d) documents to search index." % total_to_include)
+    if total_to_include > 0:
+        for ndx, to_include_id in enumerate(include_ids, 1):
+            logger.debug("Including documento (%d/%d): %s" % (ndx, total_to_include, to_include_id))
+            splited = to_include_id.split('_')
+            code = splited[1]
+            collection = splited[0]
+            processing_date = splited[2]
+            if endpoint == 'article':
+                document = art_meta.document(code=code, collection=collection)
+                document = fmt(document)
+
+            if endpoint == 'journal':
+                document = art_meta.journal(code=code, collection=collection)
+                document = fmt(document)
+
+            ES.index(index=index, doc_type=endpoint, id=document['id'], body=document)
+
+    # Ids to remove
+    if delete is True:
+        logger.info("Running remove records process.")
+        remove_ids = ind_ids - art_ids
+        total_to_remove = len(remove_ids)
+        logger.info("Removing (%d) documents to search index." % total_to_remove)
+        if endpoint == 'article' and total_to_remove > 1000:
+            logger.warning('To many documents to remove (%d), skipping', total_to_remove)
+            return
+
+        if endpoint == 'journal' and total_to_remove > 10:
+            logger.warning('To many journals to remove (%d), skipping', total_to_remove)
+            return
+
+        for ndx, to_remove_id in enumerate(remove_ids, 1):
+            logger.debug('Removing document (%d/%d): %s', ndx, total_to_remove, to_remove_id)
+            splited = to_remove_id.split('_')
+            code = '_'.join([splited[0], splited[1]])
+            collection = splited[0]
+            processing_date = splited[2]
+            ES.delete(index=index, doc_type=endpoint, id=code)
+
+
+def common_mode(
+    index, endpoint, fmt, collection=None, issns=None, from_date=FROM,
+    until_date=UNTIL, delete=False
+):
+
+    logger.info('Running common mode')
+
+    for event, document in documents(
+        endpoint, collection=collection, issns=issns, fmt=fmt,
+        from_date=from_date, until_date=until_date
+    ):
+
+        logger.debug('loading document %s into index %s', document['id'], endpoint)
+        ES.index(
+            index=index,
+            doc_type=endpoint,
+            id=document['id'],
+            body=document
+        )
+
+
+def run(
+    doc_type, index=utils.ELASTICSEARCH_INDEX, collection=None, issns=None,
+    from_date=FROM, until_date=UNTIL, differential=False, delete=False
+):
 
     logger.info('Running Publication Stats Update')
 
@@ -475,102 +576,15 @@ def run(doc_type, index=utils.ELASTICSEARCH_INDEX, collection=None, issns=None, 
         logger.error('Invalid doc_type')
         exit()
 
-    logger.info('Updating %s index', endpoint)
+    logger.info('Updating %s index', index)
 
-    for event, document in documents(
-        endpoint,
-        collection=collection,
-        issns=issns,
-        fmt=fmt,
-        from_date=from_date,
-        until_date=until_date,
-        identifiers=identifiers
-    ):
-        if event == 'delete':
-            logger.debug('removing document %s from index %s', document['id'], doc_type)
-            try:
-                ES.delete(index=index, doc_type=doc_type, id=document['id'])
-            except NotFoundError:
-                logger.debug('Record already removed: %s', document['id'])
-            except:
-                logger.error('Unexpected error: %s', sys.exc_info()[0])
+    if differential is True:
+        differential_mode(
+            index, endpoint, fmt, collection=collection, delete=delete)
+    else:
+        common_mode(index, endpoint, fmt, collection, issns, from_date, until_date)
 
-        else:  # event would be ['add', 'update']
-            logger.debug('loading document %s into index %s', document['id'], doc_type)
-            ES.index(
-                index=index,
-                doc_type=doc_type,
-                id=document['id'],
-                body=document
-            )
-
-    if sanitization is True:
-        logger.info("Running sanitization process")
-        ind_ids = set()
-        art_ids = set()
-
-        logger.info("Loading ArticleMeta IDs")
-        if doc_type == 'article':
-            for issn in issns:
-                for item in articlemeta().documents(collection=collection, issn=issn, only_identifiers=True):
-                    code = '_'.join([item.collection, item.code])
-                    art_ids.add(code)
-                    logger.debug('Read item from ArticleMeta (%d): %s', len(art_ids), code)
-
-        if doc_type == 'journal':
-            for item in articlemeta().journals(collection=collection):
-                code = '_'.join([item.collection_acronym, item.scielo_issn])
-                art_ids.add(code)
-                logger.debug('Read item from ArticleMeta (%d): %s', len(art_ids), code)
-
-        logger.info("Loading ElasticSearch Index IDs")
-
-        if collection:
-            query = {
-                "match": {
-                    "collection": collection
-
-                }
-            }
-        else:
-            query = {
-                "match_all": {}
-            }
-
-        body = {
-            "query": query,
-            "_source": ["id"]
-        }
-
-        result = ES.search(index=index, doc_type=doc_type, body=body, size=10000, scroll='1h')
-        while True:
-            scroll = {
-                'scroll': '1h',
-                'scroll_id': result['_scroll_id']
-            }
-            if len(result['hits']['hits']) == 0:
-                ES.clear_scroll(scroll_id=result['_scroll_id'])
-                break
-            for item in result['hits']['hits']:
-                ind_ids.add(item['_id'])
-                logger.debug('Read item from ElasticSearch Index (%d): %s', len(ind_ids), item['_id'])
-            result = ES.scroll(body=scroll, scroll='1h')
-
-        remove_ids = ind_ids - art_ids
-
-        if endpoint == 'article' and len(remove_ids) > 2000:
-            logger.warning('To many documents to remove (%d), skipping', len(remove_ids))
-            return
-
-        if endpoint == 'journal' and len(remove_ids) > 50:
-            logger.warning('To many journals to remove (%d), skipping', len(remove_ids))
-            return
-
-        for item in remove_ids:
-            logger.debug('Removing id: %s', item)
-            ES.delete(index=index, doc_type=doc_type, id=item)
-
-        logger.info('Processing finished')
+    logger.info('Processing finished')
 
 
 def main():
@@ -607,28 +621,28 @@ def main():
 
     parser.add_argument(
         '--index',
-        '-x',
-        default=utils.ELASTICSEARCH_INDEX,
-        help='Define the index to populate.'
-    )
-
-    parser.add_argument(
-        '--identifiers',
         '-i',
-        action='store_true',
-        help='Define the identifiers endpoint to retrieve the document and journal codes. If not given the enpoint used will be the history. When using history the processing will also remove records from the index.'
+        default=utils.ELASTICSEARCH_INDEX,
+        help='Define the source index to populate.'
     )
 
     parser.add_argument(
-        '--sanitization',
-        '-s',
+        '--differential',
+        '-x',
         action='store_true',
-        help='Run cleaup process. This process will remove from index, every ID not available in ArticleMeta'
+        help='Differential processing compare ids from ArticleMeta and PublicationStats index, remove and add just the diferences between both sources.'
+    )
+
+    parser.add_argument(
+        '-d', '--delete',
+        default=False,
+        action='store_true',
+        help='Remove documents elegible to be removed in differential process'
     )
 
     parser.add_argument(
         '--doc_type',
-        '-d',
+        '-t',
         choices=['article', 'journal'],
         help='Document type that will be updated'
     )
@@ -652,4 +666,10 @@ def main():
     if len(args.issns) > 0:
         issns = utils.ckeck_given_issns(args.issns)
 
-    run(args.doc_type, index=args.index, collection=args.collection, issns=issns or [None], from_date=args.from_date, until_date=args.until_date, identifiers=args.identifiers, sanitization=args.sanitization)
+    run(
+        args.doc_type,
+        index=args.index, collection=args.collection,
+        issns=issns or [None], from_date=args.from_date,
+        until_date=args.until_date, differential=args.differential,
+        delete=args.delete
+    )
