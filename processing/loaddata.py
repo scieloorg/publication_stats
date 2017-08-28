@@ -477,6 +477,7 @@ def differential_mode(index, endpoint, fmt, collection=None, delete=False):
     }
 
     result = ES.search(index=index, doc_type=endpoint, body=body, size=10000, scroll='1h')
+    ndx = 0
     while True:
         scroll = {
             'scroll': '1h',
@@ -485,7 +486,8 @@ def differential_mode(index, endpoint, fmt, collection=None, delete=False):
         if len(result['hits']['hits']) == 0:
             ES.clear_scroll(scroll_id=result['_scroll_id'])
             break
-        for ndx, item in enumerate(result['hits']['hits'], 1):
+        for item in result['hits']['hits']:
+            ndx += 1
             code = "_".join([item['_source']['id'], item['_source'].get('processing_date', '1900-01-01')])
             ind_ids.add(code)
             logger.debug('Read item from ElasticSearch Index (%d): %s', ndx, code)
