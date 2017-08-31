@@ -19,7 +19,7 @@ install_requires = [
     'pyramid_chameleon',
     'pyramid_mako',
     'waitress',
-    'articlemetaapi==1.17.0'
+    'articlemetaapi==1.17.0',
     'raven'
     ]
 
