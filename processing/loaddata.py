@@ -265,6 +265,22 @@ def setup_index(index):
                     "is_multidisciplinary": {
                         "type": "long"
                     },
+                    "creation_date": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "creation_year": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "processing_year": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "processing_date": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
                     "title": {
                         "type": "string",
                         "index": "not_analyzed"
@@ -446,13 +462,13 @@ def differential_mode(index, endpoint, fmt, collection=None, delete=False):
     art_ids = set()
     logger.info("Loading ArticleMeta IDs")
     if endpoint == 'article':
-        for ndx, item in enumerate(articlemeta().documents(collection=collection, only_identifiers=True), 1):
+        for ndx, item in enumerate(art_meta.documents(collection=collection, only_identifiers=True), 1):
             code = '_'.join([item.collection, item.code, item.processing_date])
             art_ids.add(code)
             logger.debug('Read item from ArticleMeta (%d): %s', ndx, code)
 
     if endpoint == 'journal':
-        for ndx, item in enumerate(articlemeta().journals(collection=collection), 1):
+        for ndx, item in enumerate(art_meta.journals(collection=collection), 1):
             code = '_'.join([item.collection_acronym, item.scielo_issn, item.processing_date])
             art_ids.add(code)
             logger.debug('Read item from ArticleMeta (%d): %s', ndx, code)
