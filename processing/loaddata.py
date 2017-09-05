@@ -11,6 +11,7 @@ from elasticsearch import Elasticsearch, NotFoundError, RequestError
 from publication import utils
 from articlemeta import client
 from processing import choices
+import xylose
 
 logger = logging.getLogger(__name__)
 
@@ -523,11 +524,19 @@ def differential_mode(index, endpoint, fmt, collection=None, delete=False):
             processing_date = splited[2]
             if endpoint == 'article':
                 document = art_meta.document(code=code, collection=collection)
-                document = fmt(document)
+                try:
+                    document = fmt(document)
+                except xylose.scielodocument.UnavailableMetadataException as e:
+                    logger.error('Fail to format metadata for (%s_%s) error: %s', collection, code, e.args[0])
+                    continue
 
             if endpoint == 'journal':
                 document = art_meta.journal(code=code, collection=collection)
-                document = fmt(document)
+                try:
+                    document = fmt(document)
+                except xylose.scielodocument.UnavailableMetadataException as e:
+                    logger.error('Fail to format metadata for (%s_%s) error: %s', collection, code, e.args[0])
+                    continue
 
             ES.index(index=index, doc_type=endpoint, id=document['id'], body=document)
 
