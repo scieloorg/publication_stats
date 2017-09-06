@@ -11,6 +11,7 @@ from elasticsearch import Elasticsearch, NotFoundError, RequestError
 from publication import utils
 from articlemeta import client
 from processing import choices
+import xylose
 
 logger = logging.getLogger(__name__)
 
@@ -265,6 +266,22 @@ def setup_index(index):
                     "is_multidisciplinary": {
                         "type": "long"
                     },
+                    "creation_date": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "creation_year": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "processing_year": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
+                    "processing_date": {
+                        "type": "string",
+                        "index": "not_analyzed"
+                    },
                     "title": {
                         "type": "string",
                         "index": "not_analyzed"
@@ -446,13 +463,13 @@ def differential_mode(index, endpoint, fmt, collection=None, delete=False):
     art_ids = set()
     logger.info("Loading ArticleMeta IDs")
     if endpoint == 'article':
-        for ndx, item in enumerate(articlemeta().documents(collection=collection, only_identifiers=True), 1):
+        for ndx, item in enumerate(art_meta.documents(collection=collection, only_identifiers=True), 1):
             code = '_'.join([item.collection, item.code, item.processing_date])
             art_ids.add(code)
             logger.debug('Read item from ArticleMeta (%d): %s', ndx, code)
 
     if endpoint == 'journal':
-        for ndx, item in enumerate(articlemeta().journals(collection=collection), 1):
+        for ndx, item in enumerate(art_meta.journals(collection=collection), 1):
             code = '_'.join([item.collection_acronym, item.scielo_issn, item.processing_date])
             art_ids.add(code)
             logger.debug('Read item from ArticleMeta (%d): %s', ndx, code)
@@ -507,18 +524,26 @@ def differential_mode(index, endpoint, fmt, collection=None, delete=False):
             processing_date = splited[2]
             if endpoint == 'article':
                 document = art_meta.document(code=code, collection=collection)
-                document = fmt(document)
+                try:
+                    document = fmt(document)
+                except xylose.scielodocument.UnavailableMetadataException as e:
+                    logger.error('Fail to format metadata for (%s_%s) error: %s', collection, code, e.args[0])
+                    continue
 
             if endpoint == 'journal':
                 document = art_meta.journal(code=code, collection=collection)
-                document = fmt(document)
+                try:
+                    document = fmt(document)
+                except xylose.scielodocument.UnavailableMetadataException as e:
+                    logger.error('Fail to format metadata for (%s_%s) error: %s', collection, code, e.args[0])
+                    continue
 
             ES.index(index=index, doc_type=endpoint, id=document['id'], body=document)
 
     # Ids to remove
     if delete is True:
         logger.info("Running remove records process.")
-        remove_ids = ind_ids - art_ids
+        remove_ids = set([i.split('_')[1] for i in ind_ids]) - set([i.split('_')[1] for i in art_ids])
         total_to_remove = len(remove_ids)
         logger.info("Removing (%d) documents to search index." % total_to_remove)
         if endpoint == 'article' and total_to_remove > 1000:
