@@ -543,7 +543,7 @@ def differential_mode(index, endpoint, fmt, collection=None, delete=False):
     # Ids to remove
     if delete is True:
         logger.info("Running remove records process.")
-        remove_ids = ind_ids - art_ids
+        remove_ids = set([i.split('_')[1] for i in ind_ids]) - set([i.split('_')[1] for i in art_ids])
         total_to_remove = len(remove_ids)
         logger.info("Removing (%d) documents to search index." % total_to_remove)
         if endpoint == 'article' and total_to_remove > 1000:
