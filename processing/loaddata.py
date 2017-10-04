@@ -513,7 +513,7 @@ def differential_mode(index, endpoint, fmt, collection=None, delete=False):
     # Ids to remove
     if delete is True:
         logger.info("Running remove records process.")
-        remove_ids = set([i.split('_')[1] for i in ind_ids]) - set([i.split('_')[1] for i in art_ids])
+        remove_ids = set(['_'.join(i.split('_')[:2]) for i in ind_ids]) - set(['_'.join(i.split('_')[:2]) for i in art_ids])
         total_to_remove = len(remove_ids)
         logger.info("Removing (%d) documents to search index." % total_to_remove)
         if endpoint == 'article' and total_to_remove > 1000:
@@ -526,11 +526,7 @@ def differential_mode(index, endpoint, fmt, collection=None, delete=False):
 
         for ndx, to_remove_id in enumerate(remove_ids, 1):
             logger.debug('Removing document (%d/%d): %s', ndx, total_to_remove, to_remove_id)
-            splited = to_remove_id.split('_')
-            code = '_'.join([splited[0], splited[1]])
-            collection = splited[0]
-            processing_date = splited[2]
-            ES.delete(index=index, doc_type=endpoint, id=code)
+            ES.delete(index=index, doc_type=endpoint, id=to_remove_id)
 
     # Ids to include
     logger.info("Running include records process.")
