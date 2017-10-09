@@ -227,6 +227,7 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
     for issn in issns:
         if endpoint == 'article':
             itens = articlemeta().documents(collection=collection, issn=issn, from_date=from_date, until_date=until_date)
+
         elif endpoint == 'journal':
             itens = articlemeta().journals(collection=collection)
 
@@ -237,7 +238,7 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
             try:
                 formated_document = fmt(item)
             except xylose.scielodocument.UnavailableMetadataException as e:
-                logger.error('Fail to format metadata for (%s_%s) error: %s', collection, code, e.args[0])
+                logger.error('Fail to format metadata for (%s_%s) error: %s', item.collection_acronym, str(item.data['code']), e.args[0])
                 continue
 
             yield ('add', formated_document)
