@@ -234,7 +234,11 @@ def documents(endpoint, collection=None, issns=None, fmt=None, from_date=FROM, u
             if not item or not item.data:
                 continue
 
-            formated_document = fmt(item)
+            try:
+                formated_document = fmt(item)
+            except xylose.scielodocument.UnavailableMetadataException as e:
+                logger.error('Fail to format metadata for (%s_%s) error: %s', collection, code, e.args[0])
+                continue
 
             yield ('add', formated_document)
 
