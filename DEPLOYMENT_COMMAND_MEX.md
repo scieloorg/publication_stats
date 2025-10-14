@@ -49,9 +49,9 @@ publicationstats_loaddata --collection mex --doc_type article --differential --l
 
 Os seguintes artigos foram mencionados como tendo anos incorretos (antes da correção no ArticleMeta):
 
-- Tecnología y ciências del agua v12n1 - Antes: 2026
-- Tecnología y ciências del agua v12n2 - Antes: 2026  
-- Tecnología y ciências del agua v12n3 - Antes: 2026
+- Tecnología y ciencias del agua v12n1 - Antes: 2026
+- Tecnología y ciencias del agua v12n2 - Antes: 2026  
+- Tecnología y ciencias del agua v12n3 - Antes: 2026
 - Acta médica Grupo Ángeles v21n4 - Antes: 2027
 - Investigación en educación médica v13n50 - Antes: 2250
 
