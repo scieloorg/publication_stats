@@ -1,0 +1,30 @@
+Comando para atualizar os dados da Coleção México no PublicationStats
+======================================================================
+
+COMANDO PRINCIPAL:
+------------------
+
+publicationstats_loaddata --collection mex --doc_type article --differential
+
+
+COMANDO ALTERNATIVO (com remoção de documentos obsoletos):
+-----------------------------------------------------------
+
+publicationstats_loaddata --collection mex --doc_type article --differential --delete
+
+
+COMANDO COM LOG DETALHADO (recomendado):
+-----------------------------------------
+
+publicationstats_loaddata --collection mex --doc_type article --differential --logging_level INFO
+
+
+NOTAS:
+------
+- Executar no servidor onde está instalada a aplicação PublicationStats
+- O modo diferencial (--differential) atualiza apenas documentos modificados
+- O parâmetro --delete remove documentos que não existem mais no ArticleMeta
+- Verificar após execução: https://analytics.scielo.org/?journal=2007-5057&collection=mex
+
+
+Para mais detalhes, consulte o arquivo DEPLOYMENT_COMMAND_MEX.md
